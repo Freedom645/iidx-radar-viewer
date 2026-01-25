@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { Difficulty } from '@/types'
 
 interface RadarFilter {
@@ -15,6 +16,10 @@ interface FilterState {
   levelMin: number
   /** レベル最大値 */
   levelMax: number
+  /** BPM最小値（空文字列は制限なし） */
+  bpmMin: string
+  /** BPM最大値（空文字列は制限なし） */
+  bpmMax: string
   /** レーダ値フィルタ */
   radarFilters: {
     notes: RadarFilter
@@ -34,6 +39,8 @@ interface FilterState {
   setDifficulties: (difficulties: Set<Difficulty>) => void
   /** レベル範囲を設定 */
   setLevelRange: (min: number, max: number) => void
+  /** BPM範囲を設定 */
+  setBpmRange: (min: string, max: string) => void
   /** レーダフィルタを設定 */
   setRadarFilter: (
     type: keyof FilterState['radarFilters'],
@@ -47,58 +54,124 @@ interface FilterState {
 
 const initialRadarFilter: RadarFilter = { min: 0, max: 200 }
 
-const initialState = {
+const getInitialDifficulties = () => new Set<Difficulty>([
+  'BEGINNER',
+  'NORMAL',
+  'HYPER',
+  'ANOTHER',
+  'LEGGENDARIA',
+])
+
+const getInitialRadarFilters = () => ({
+  notes: { ...initialRadarFilter },
+  peak: { ...initialRadarFilter },
+  scratch: { ...initialRadarFilter },
+  soflan: { ...initialRadarFilter },
+  charge: { ...initialRadarFilter },
+  chord: { ...initialRadarFilter },
+})
+
+const getInitialState = () => ({
   searchText: '',
-  difficulties: new Set<Difficulty>([
-    'BEGINNER',
-    'NORMAL',
-    'HYPER',
-    'ANOTHER',
-    'LEGGENDARIA',
-  ]),
+  difficulties: getInitialDifficulties(),
   levelMin: 1,
   levelMax: 12,
-  radarFilters: {
-    notes: { ...initialRadarFilter },
-    peak: { ...initialRadarFilter },
-    scratch: { ...initialRadarFilter },
-    soflan: { ...initialRadarFilter },
-    charge: { ...initialRadarFilter },
-    chord: { ...initialRadarFilter },
-  },
+  bpmMin: '',
+  bpmMax: '',
+  radarFilters: getInitialRadarFilters(),
   radarFilterExpanded: false,
+})
+
+/** 永続化用の型（SetをArrayに変換） */
+interface PersistedFilterState {
+  searchText: string
+  difficulties: Difficulty[]
+  levelMin: number
+  levelMax: number
+  bpmMin: string
+  bpmMax: string
+  radarFilters: FilterState['radarFilters']
+  radarFilterExpanded: boolean
 }
 
-export const useFilterStore = create<FilterState>((set) => ({
-  ...initialState,
+export const useFilterStore = create<FilterState>()(
+  persist(
+    (set) => ({
+      ...getInitialState(),
 
-  setSearchText: (searchText) => set({ searchText }),
+      setSearchText: (searchText) => set({ searchText }),
 
-  toggleDifficulty: (difficulty) =>
-    set((state) => {
-      const newDifficulties = new Set(state.difficulties)
-      if (newDifficulties.has(difficulty)) {
-        newDifficulties.delete(difficulty)
-      } else {
-        newDifficulties.add(difficulty)
-      }
-      return { difficulties: newDifficulties }
+      toggleDifficulty: (difficulty) =>
+        set((state) => {
+          const newDifficulties = new Set(state.difficulties)
+          if (newDifficulties.has(difficulty)) {
+            newDifficulties.delete(difficulty)
+          } else {
+            newDifficulties.add(difficulty)
+          }
+          return { difficulties: newDifficulties }
+        }),
+
+      setDifficulties: (difficulties) => set({ difficulties }),
+
+      setLevelRange: (levelMin, levelMax) => set({ levelMin, levelMax }),
+
+      setBpmRange: (bpmMin, bpmMax) => set({ bpmMin, bpmMax }),
+
+      setRadarFilter: (type, filter) =>
+        set((state) => ({
+          radarFilters: {
+            ...state.radarFilters,
+            [type]: filter,
+          },
+        })),
+
+      toggleRadarFilterExpanded: () =>
+        set((state) => ({ radarFilterExpanded: !state.radarFilterExpanded })),
+
+      resetFilters: () => set(getInitialState()),
     }),
-
-  setDifficulties: (difficulties) => set({ difficulties }),
-
-  setLevelRange: (levelMin, levelMax) => set({ levelMin, levelMax }),
-
-  setRadarFilter: (type, filter) =>
-    set((state) => ({
-      radarFilters: {
-        ...state.radarFilters,
-        [type]: filter,
+    {
+      name: 'iidx-radar-viewer-filters',
+      storage: {
+        getItem: (name) => {
+          const str = localStorage.getItem(name)
+          if (!str) return null
+          const parsed = JSON.parse(str) as { state: PersistedFilterState; version?: number }
+          return {
+            ...parsed,
+            state: {
+              ...parsed.state,
+              difficulties: new Set(parsed.state.difficulties),
+            },
+          }
+        },
+        setItem: (name, value) => {
+          const state = value.state as FilterState
+          const persistedState: PersistedFilterState = {
+            searchText: state.searchText,
+            difficulties: Array.from(state.difficulties),
+            levelMin: state.levelMin,
+            levelMax: state.levelMax,
+            bpmMin: state.bpmMin,
+            bpmMax: state.bpmMax,
+            radarFilters: state.radarFilters,
+            radarFilterExpanded: state.radarFilterExpanded,
+          }
+          localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
+        },
+        removeItem: (name) => localStorage.removeItem(name),
       },
-    })),
-
-  toggleRadarFilterExpanded: () =>
-    set((state) => ({ radarFilterExpanded: !state.radarFilterExpanded })),
-
-  resetFilters: () => set(initialState),
-}))
+      partialize: (state) => ({
+        searchText: state.searchText,
+        difficulties: state.difficulties,
+        levelMin: state.levelMin,
+        levelMax: state.levelMax,
+        bpmMin: state.bpmMin,
+        bpmMax: state.bpmMax,
+        radarFilters: state.radarFilters,
+        radarFilterExpanded: state.radarFilterExpanded,
+      }),
+    }
+  )
+)

@@ -2,6 +2,7 @@ import { useFilterStore } from '@/stores'
 import { SearchInput } from './SearchInput'
 import { DifficultyFilter } from './DifficultyFilter'
 import { LevelFilter } from './LevelFilter'
+import { BpmFilter } from './BpmFilter'
 import { RadarFilter } from './RadarFilter'
 
 export function FilterPanel() {
@@ -13,10 +14,14 @@ export function FilterPanel() {
     levelMin,
     levelMax,
     setLevelRange,
+    bpmMin,
+    bpmMax,
+    setBpmRange,
     radarFilters,
     setRadarFilter,
     radarFilterExpanded,
     toggleRadarFilterExpanded,
+    resetFilters,
   } = useFilterStore()
 
   return (
@@ -46,6 +51,16 @@ export function FilterPanel() {
             onChange={setLevelRange}
           />
         </div>
+
+        {/* BPMフィルタ */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">BPM</label>
+          <BpmFilter
+            min={bpmMin}
+            max={bpmMax}
+            onChange={setBpmRange}
+          />
+        </div>
       </div>
 
       {/* レーダ値フィルタ */}
@@ -55,6 +70,16 @@ export function FilterPanel() {
         expanded={radarFilterExpanded}
         onToggleExpanded={toggleRadarFilterExpanded}
       />
+
+      {/* リセットボタン */}
+      <div className="flex justify-end">
+        <button
+          onClick={resetFilters}
+          className="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+        >
+          リセット
+        </button>
+      </div>
     </div>
   )
 }

@@ -5,13 +5,11 @@ import {
   getSortedRowModel,
   flexRender,
   createColumnHelper,
-  type SortingState,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useState } from 'react'
 import type { ChartData, Difficulty, PlayMode } from '@/types'
 import { DIFFICULTY_SHORT } from '@/types'
-import { useColumnStore, type ColumnId } from '@/stores'
+import { useColumnStore, useSortStore, type ColumnId } from '@/stores'
 
 interface ChartTableProps {
   data: ChartData[]
@@ -31,9 +29,7 @@ const ROW_HEIGHT = 41
 const columnHelper = createColumnHelper<ChartData>()
 
 export function ChartTable({ data, playMode }: ChartTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'title', desc: false },
-  ])
+  const { sorting, setSorting } = useSortStore()
   const { visibleColumns } = useColumnStore()
   const tableContainerRef = useRef<HTMLDivElement>(null)
 

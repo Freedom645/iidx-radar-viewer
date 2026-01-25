@@ -2,6 +2,17 @@ import { useEffect, useMemo } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings } from '@/components'
 
+/** BPM文字列をパースして[min, max]を返す */
+function parseBpm(bpmStr: string): [number, number] {
+  if (!bpmStr || bpmStr === '-') return [0, 999]
+  if (bpmStr.includes('-')) {
+    const parts = bpmStr.split('-').map(Number)
+    return [Math.min(...parts), Math.max(...parts)]
+  }
+  const num = Number(bpmStr)
+  return [num, num]
+}
+
 function App() {
   const { charts, loading, error, playMode, fetchCharts, setPlayMode } =
     useChartStore()
@@ -10,6 +21,8 @@ function App() {
     difficulties,
     levelMin,
     levelMax,
+    bpmMin,
+    bpmMax,
     radarFilters,
   } = useFilterStore()
 
@@ -35,6 +48,17 @@ function App() {
 
       // レベルフィルタ
       if (chart.level < levelMin || chart.level > levelMax) return false
+
+      // BPMフィルタ
+      const bpmMinNum = bpmMin ? Number(bpmMin) : null
+      const bpmMaxNum = bpmMax ? Number(bpmMax) : null
+      if (bpmMinNum !== null || bpmMaxNum !== null) {
+        const [chartBpmMin, chartBpmMax] = parseBpm(chart.bpm)
+        // ソフラン譜面は最小BPM〜最大BPMの範囲で判定（どちらかが範囲内なら表示）
+        const minOk = bpmMinNum === null || chartBpmMax >= bpmMinNum
+        const maxOk = bpmMaxNum === null || chartBpmMin <= bpmMaxNum
+        if (!minOk || !maxOk) return false
+      }
 
       // レーダ値フィルタ
       const { radar } = chart
@@ -78,6 +102,8 @@ function App() {
     difficulties,
     levelMin,
     levelMax,
+    bpmMin,
+    bpmMax,
     radarFilters,
   ])
 
@@ -103,7 +129,7 @@ function App() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-xl font-bold text-gray-900">
-            IIDX レーダビューワ
+            IIDX Radar Viewer
           </h1>
         </div>
       </header>
