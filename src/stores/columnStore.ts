@@ -26,7 +26,7 @@ export const COLUMN_CONFIGS: ColumnConfig[] = [
   { id: 'difficulty', label: '難易度', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'level', label: 'Lv', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'bpm', label: 'BPM', defaultVisible: true, defaultVisibleMobile: false },
-  { id: 'noteCount', label: 'Notes', defaultVisible: true, defaultVisibleMobile: false },
+  { id: 'noteCount', label: '総ノーツ数', defaultVisible: true, defaultVisibleMobile: false },
   { id: 'notes', label: 'NOTES', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'peak', label: 'PEAK', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'scratch', label: 'SCRATCH', defaultVisible: true, defaultVisibleMobile: true },

@@ -82,7 +82,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
       }),
       columnHelper.accessor('noteCount', {
         id: 'noteCount',
-        header: 'Notes',
+        header: '総ノーツ数',
         cell: (info) => info.getValue().toLocaleString(),
         size: 70,
         minSize: 70,
