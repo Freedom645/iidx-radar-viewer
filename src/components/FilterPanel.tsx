@@ -17,6 +17,9 @@ export function FilterPanel() {
     bpmMin,
     bpmMax,
     setBpmRange,
+    noteCountMin,
+    noteCountMax,
+    setNoteCountRange,
     radarFilters,
     setRadarFilter,
     radarFilterExpanded,
@@ -59,6 +62,18 @@ export function FilterPanel() {
             min={bpmMin}
             max={bpmMax}
             onChange={setBpmRange}
+          />
+        </div>
+
+        {/* 総ノーツ数フィルタ */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">総ノーツ数</label>
+          <BpmFilter
+            min={noteCountMin}
+            max={noteCountMax}
+            onChange={setNoteCountRange}
+            inputMin={1}
+            inputMax={9999}
           />
         </div>
       </div>
