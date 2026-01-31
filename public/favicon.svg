@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- 背景円 -->
+  <circle cx="16" cy="16" r="15" fill="#1e293b" stroke="#3b82f6" stroke-width="1"/>
+  <!-- レーダーグリッド -->
+  <polygon points="16,4 26.4,10 26.4,22 16,28 5.6,22 5.6,10" fill="none" stroke="#475569" stroke-width="0.5"/>
+  <polygon points="16,8 23.2,12 23.2,20 16,24 8.8,20 8.8,12" fill="none" stroke="#475569" stroke-width="0.5"/>
+  <polygon points="16,12 19.9,14 19.9,18 16,20 12.1,18 12.1,14" fill="none" stroke="#475569" stroke-width="0.5"/>
+  <!-- レーダー軸 -->
+  <line x1="16" y1="16" x2="16" y2="4" stroke="#475569" stroke-width="0.5"/>
+  <line x1="16" y1="16" x2="26.4" y2="10" stroke="#475569" stroke-width="0.5"/>
+  <line x1="16" y1="16" x2="26.4" y2="22" stroke="#475569" stroke-width="0.5"/>
+  <line x1="16" y1="16" x2="16" y2="28" stroke="#475569" stroke-width="0.5"/>
+  <line x1="16" y1="16" x2="5.6" y2="22" stroke="#475569" stroke-width="0.5"/>
+  <line x1="16" y1="16" x2="5.6" y2="10" stroke="#475569" stroke-width="0.5"/>
+  <!-- レーダー値（サンプル形状） -->
+  <polygon points="16,5 25,11 22,21 16,26 8,19 7.5,11" fill="#3b82f6" fill-opacity="0.3" stroke="#3b82f6" stroke-width="1.5"/>
+  <!-- 頂点のドット -->
+  <circle cx="16" cy="5" r="1.2" fill="#60a5fa"/>
+  <circle cx="25" cy="11" r="1.2" fill="#60a5fa"/>
+  <circle cx="22" cy="21" r="1.2" fill="#60a5fa"/>
+  <circle cx="16" cy="26" r="1.2" fill="#60a5fa"/>
+  <circle cx="8" cy="19" r="1.2" fill="#60a5fa"/>
+  <circle cx="7.5" cy="11" r="1.2" fill="#60a5fa"/>
+</svg>
