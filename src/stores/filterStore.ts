@@ -20,6 +20,10 @@ interface FilterState {
   bpmMin: string
   /** BPM最大値（空文字列は制限なし） */
   bpmMax: string
+  /** 総ノーツ数最小値（空文字列は制限なし） */
+  noteCountMin: string
+  /** 総ノーツ数最大値（空文字列は制限なし） */
+  noteCountMax: string
   /** レーダ値フィルタ */
   radarFilters: {
     notes: RadarFilter
@@ -41,6 +45,8 @@ interface FilterState {
   setLevelRange: (min: number, max: number) => void
   /** BPM範囲を設定 */
   setBpmRange: (min: string, max: string) => void
+  /** 総ノーツ数範囲を設定 */
+  setNoteCountRange: (min: string, max: string) => void
   /** レーダフィルタを設定 */
   setRadarFilter: (
     type: keyof FilterState['radarFilters'],
@@ -78,6 +84,8 @@ const getInitialState = () => ({
   levelMax: 12,
   bpmMin: '',
   bpmMax: '',
+  noteCountMin: '',
+  noteCountMax: '',
   radarFilters: getInitialRadarFilters(),
   radarFilterExpanded: false,
 })
@@ -90,6 +98,8 @@ interface PersistedFilterState {
   levelMax: number
   bpmMin: string
   bpmMax: string
+  noteCountMin: string
+  noteCountMax: string
   radarFilters: FilterState['radarFilters']
   radarFilterExpanded: boolean
 }
@@ -117,6 +127,9 @@ export const useFilterStore = create<FilterState>()(
       setLevelRange: (levelMin, levelMax) => set({ levelMin, levelMax }),
 
       setBpmRange: (bpmMin, bpmMax) => set({ bpmMin, bpmMax }),
+
+      setNoteCountRange: (noteCountMin, noteCountMax) =>
+        set({ noteCountMin, noteCountMax }),
 
       setRadarFilter: (type, filter) =>
         set((state) => ({
@@ -155,6 +168,8 @@ export const useFilterStore = create<FilterState>()(
             levelMax: state.levelMax,
             bpmMin: state.bpmMin,
             bpmMax: state.bpmMax,
+            noteCountMin: state.noteCountMin,
+            noteCountMax: state.noteCountMax,
             radarFilters: state.radarFilters,
             radarFilterExpanded: state.radarFilterExpanded,
           }
@@ -169,6 +184,8 @@ export const useFilterStore = create<FilterState>()(
         levelMax: state.levelMax,
         bpmMin: state.bpmMin,
         bpmMax: state.bpmMax,
+        noteCountMin: state.noteCountMin,
+        noteCountMax: state.noteCountMax,
         radarFilters: state.radarFilters,
         radarFilterExpanded: state.radarFilterExpanded,
       }),

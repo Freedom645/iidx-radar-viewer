@@ -2,7 +2,7 @@ import { useFilterStore } from '@/stores'
 import { SearchInput } from './SearchInput'
 import { DifficultyFilter } from './DifficultyFilter'
 import { LevelFilter } from './LevelFilter'
-import { BpmFilter } from './BpmFilter'
+import { NumberRangeFilter } from './NumberRangeFilter'
 import { RadarFilter } from './RadarFilter'
 
 export function FilterPanel() {
@@ -17,6 +17,9 @@ export function FilterPanel() {
     bpmMin,
     bpmMax,
     setBpmRange,
+    noteCountMin,
+    noteCountMax,
+    setNoteCountRange,
     radarFilters,
     setRadarFilter,
     radarFilterExpanded,
@@ -55,10 +58,22 @@ export function FilterPanel() {
         {/* BPMフィルタ */}
         <div>
           <label className="block text-xs text-gray-600 mb-1">BPM</label>
-          <BpmFilter
+          <NumberRangeFilter
             min={bpmMin}
             max={bpmMax}
             onChange={setBpmRange}
+          />
+        </div>
+
+        {/* 総ノーツ数フィルタ */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">総ノーツ数</label>
+          <NumberRangeFilter
+            min={noteCountMin}
+            max={noteCountMax}
+            onChange={setNoteCountRange}
+            inputMin={1}
+            inputMax={9999}
           />
         </div>
       </div>

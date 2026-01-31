@@ -23,6 +23,8 @@ function App() {
     levelMax,
     bpmMin,
     bpmMax,
+    noteCountMin,
+    noteCountMax,
     radarFilters,
   } = useFilterStore()
 
@@ -59,6 +61,12 @@ function App() {
         const maxOk = bpmMaxNum === null || chartBpmMin <= bpmMaxNum
         if (!minOk || !maxOk) return false
       }
+
+      // 総ノーツ数フィルタ
+      const ncMin = noteCountMin ? Number(noteCountMin) : null
+      const ncMax = noteCountMax ? Number(noteCountMax) : null
+      if (ncMin !== null && chart.noteCount < ncMin) return false
+      if (ncMax !== null && chart.noteCount > ncMax) return false
 
       // レーダ値フィルタ
       const { radar } = chart
@@ -104,6 +112,8 @@ function App() {
     levelMax,
     bpmMin,
     bpmMax,
+    noteCountMin,
+    noteCountMax,
     radarFilters,
   ])
 
