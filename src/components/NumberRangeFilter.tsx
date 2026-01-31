@@ -1,4 +1,4 @@
-interface BpmFilterProps {
+interface NumberRangeFilterProps {
   min: string
   max: string
   onChange: (min: string, max: string) => void
@@ -6,7 +6,7 @@ interface BpmFilterProps {
   inputMax?: number
 }
 
-export function BpmFilter({ min, max, onChange, inputMin = 1, inputMax = 999 }: BpmFilterProps) {
+export function NumberRangeFilter({ min, max, onChange, inputMin = 1, inputMax = 999 }: NumberRangeFilterProps) {
   return (
     <div className="flex items-center gap-2">
       <input
