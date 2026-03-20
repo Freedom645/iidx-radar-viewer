@@ -147,6 +147,86 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
       ...(playMode === 'SP'
         ? [
             columnHelper.accessor(
+              (row) => row.cpi?.easy ?? undefined,
+              {
+                id: 'cpiEasy',
+                header: 'CPI EASY',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(2) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 80,
+                minSize: 80,
+                maxSize: 80,
+              },
+            ),
+            columnHelper.accessor(
+              (row) => row.cpi?.normal ?? undefined,
+              {
+                id: 'cpiNormal',
+                header: 'CPI NORMAL',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(2) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 90,
+                minSize: 90,
+                maxSize: 90,
+              },
+            ),
+            columnHelper.accessor(
+              (row) => row.cpi?.hard ?? undefined,
+              {
+                id: 'cpiHard',
+                header: 'CPI HARD',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(2) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 80,
+                minSize: 80,
+                maxSize: 80,
+              },
+            ),
+            columnHelper.accessor(
+              (row) => row.cpi?.exh ?? undefined,
+              {
+                id: 'cpiExh',
+                header: 'CPI EXH',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(2) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 80,
+                minSize: 80,
+                maxSize: 80,
+              },
+            ),
+            columnHelper.accessor(
+              (row) => row.cpi?.fc ?? undefined,
+              {
+                id: 'cpiFc',
+                header: 'CPI FC',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(2) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 80,
+                minSize: 80,
+                maxSize: 80,
+              },
+            ),
+            columnHelper.accessor(
               (row) => {
                 const v = (row.sp12Rating ?? row.sp11Rating)?.normalValue
                 return v != null && v >= 0 ? v : undefined

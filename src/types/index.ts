@@ -64,6 +64,76 @@ export const RADAR_TYPES: RadarType[] = [
   "CHORD",
 ];
 
+/** CPIクリアタイプ */
+export type CpiClearType = "easy" | "normal" | "hard" | "exh" | "fc";
+
+/** CPIクリアタイプの配列（表示順） */
+export const CPI_CLEAR_TYPES: CpiClearType[] = [
+  "easy",
+  "normal",
+  "hard",
+  "exh",
+  "fc",
+];
+
+/** CPIクリアタイプの表示ラベル */
+export const CPI_CLEAR_TYPE_LABELS: Record<CpiClearType, string> = {
+  easy: "EASY",
+  normal: "NORMAL",
+  hard: "HARD",
+  exh: "EX HARD",
+  fc: "FC",
+};
+
+/** CPIクリアタイプとJSONキーの対応 */
+const CPI_JSON_KEY: Record<CpiClearType, string> = {
+  easy: "easy",
+  normal: "clear",
+  hard: "hard",
+  exh: "exh",
+  fc: "fc",
+};
+
+/** CPIクリアタイプからJSONキーに変換 */
+export function cpiJsonKey(clearType: CpiClearType): string {
+  return CPI_JSON_KEY[clearType];
+}
+
+/** CPI値（5種類のクリアタイプ別） */
+export interface CpiData {
+  easy: number | null;
+  normal: number | null;
+  hard: number | null;
+  exh: number | null;
+  fc: number | null;
+}
+
+/** APIレスポンス: CPI値の個別エントリ */
+export interface CpiEntryResponse {
+  cpi_value: number;
+  kojinsa_value: number;
+}
+
+/** APIレスポンス: CPI難易度別データ */
+export interface CpiDifficultyResponse {
+  easy?: CpiEntryResponse;
+  clear?: CpiEntryResponse;
+  hard?: CpiEntryResponse;
+  exh?: CpiEntryResponse;
+  fc?: CpiEntryResponse;
+}
+
+/** APIレスポンス: CPIデータ */
+export type CpiResponse = Record<
+  string,
+  {
+    A?: CpiDifficultyResponse;
+    H?: CpiDifficultyResponse;
+    L?: CpiDifficultyResponse;
+    cpi_id: string;
+  }
+>;
+
 /** AC/INFINITAS収録状況フィルター */
 export type VersionFilter = "all" | "ac" | "inf";
 
@@ -219,6 +289,8 @@ export interface ChartData {
   sp11Rating: SpDifficultyRating | null;
   /** DP難易度表 */
   dpRating: DpDifficultyRating | null;
+  /** CPI値（SP☆12のみ） */
+  cpi: CpiData | null;
 }
 
 /** BPM値の型 */
