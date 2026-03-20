@@ -270,8 +270,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
   return (
     <div
       ref={tableContainerRef}
-      className="overflow-auto"
-      style={{ height: 'calc(100vh - 350px)', minHeight: '400px' }}
+      className="overflow-auto h-full"
     >
       <table className="w-full divide-y divide-gray-200 table-fixed">
         <colgroup>

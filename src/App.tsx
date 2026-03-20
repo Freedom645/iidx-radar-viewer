@@ -204,14 +204,14 @@ function App() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col" style={{ height: 'calc(100vh - 73px)' }}>
         {/* フィルタパネル */}
-        <div className="mt-4">
+        <div>
           <FilterPanel />
         </div>
 
         {/* ツールバー */}
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-3 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             検索結果: <span className="font-medium">{filteredCharts.length}</span> 件
           </div>
@@ -219,10 +219,12 @@ function App() {
         </div>
 
         {/* 統計情報 */}
-        <StatsPanel data={filteredCharts} />
+        <div className="mt-3">
+          <StatsPanel data={filteredCharts} />
+        </div>
 
         {/* テーブル */}
-        <div className="mt-4 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="mt-3 bg-white rounded-lg shadow-sm overflow-hidden flex-1 min-h-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-3 text-gray-500">
