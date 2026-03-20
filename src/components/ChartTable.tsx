@@ -141,7 +141,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
             columnHelper.accessor(
               (row) => {
                 const v = (row.sp12Rating ?? row.sp11Rating)?.normalValue
-                return v != null && v >= 0 ? v : null
+                return v != null && v >= 0 ? v : undefined
               },
               {
                 id: 'spNormal',
@@ -152,8 +152,8 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                 },
                 sortUndefined: 'last',
                 sortingFn: (rowA, rowB, columnId) => {
-                  const a = rowA.getValue<number | null>(columnId)!
-                  const b = rowB.getValue<number | null>(columnId)!
+                  const a = rowA.getValue<number>(columnId)
+                  const b = rowB.getValue<number>(columnId)
                   if (a !== b) return a - b
                   return rowA.original.title.localeCompare(rowB.original.title, 'ja')
                 },
@@ -165,7 +165,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
             columnHelper.accessor(
               (row) => {
                 const v = (row.sp12Rating ?? row.sp11Rating)?.hardValue
-                return v != null && v >= 0 ? v : null
+                return v != null && v >= 0 ? v : undefined
               },
               {
                 id: 'spHard',
@@ -176,8 +176,8 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                 },
                 sortUndefined: 'last',
                 sortingFn: (rowA, rowB, columnId) => {
-                  const a = rowA.getValue<number | null>(columnId)!
-                  const b = rowB.getValue<number | null>(columnId)!
+                  const a = rowA.getValue<number>(columnId)
+                  const b = rowB.getValue<number>(columnId)
                   if (a !== b) return a - b
                   return rowA.original.title.localeCompare(rowB.original.title, 'ja')
                 },
@@ -189,18 +189,18 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
           ]
         : [
             columnHelper.accessor(
-              (row) => row.dpRating?.value ?? null,
+              (row) => row.dpRating?.value ?? undefined,
               {
                 id: 'dpDifficulty',
                 header: 'DP難易度',
                 cell: (info) => {
                   const val = info.getValue()
-                  return val !== null ? val.toFixed(1) : ''
+                  return val !== undefined ? val.toFixed(1) : ''
                 },
                 sortUndefined: 'last',
                 sortingFn: (rowA, rowB, columnId) => {
-                  const a = rowA.getValue<number | null>(columnId)!
-                  const b = rowB.getValue<number | null>(columnId)!
+                  const a = rowA.getValue<number>(columnId)
+                  const b = rowB.getValue<number>(columnId)
                   if (a !== b) return a - b
                   return rowA.original.title.localeCompare(rowB.original.title, 'ja')
                 },
