@@ -1,10 +1,22 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Difficulty } from '@/types'
+import type { CpiClearType, Difficulty, LabelResponse, SpDifficultyTableLabelsResponse, VersionFilter } from '@/types'
 
 interface RadarFilter {
   min: number
   max: number
+}
+
+/** DP難易度表範囲フィルター */
+export interface DpDifficultyFilter {
+  min: string
+  max: string
+}
+
+/** CPI範囲フィルター */
+export interface CpiRangeFilter {
+  min: string
+  max: string
 }
 
 interface FilterState {
@@ -35,6 +47,30 @@ interface FilterState {
   }
   /** レーダフィルタ展開状態 */
   radarFilterExpanded: boolean
+  /** AC/INFINITAS収録状況フィルター */
+  versionFilter: VersionFilter
+  /** 選択中の楽曲パックID（空は「すべて」） */
+  selectedPackIds: Set<number>
+  /** パック名一覧（フィルター選択肢用） */
+  labels: LabelResponse
+  /** 選択中のSPノーマル難易度キー（空は「すべて」） */
+  selectedSpNormalKeys: Set<string>
+  /** 選択中のSPハード難易度キー（空は「すべて」） */
+  selectedSpHardKeys: Set<string>
+  /** DP難易度表フィルター */
+  dpDifficultyFilter: DpDifficultyFilter
+  /** SP難易度表ラベル定義（☆12/☆11共通） */
+  spDifficultyLabels: SpDifficultyTableLabelsResponse | null
+  /** 難易度表フィルタ展開状態 */
+  difficultyTableFilterExpanded: boolean
+  /** CPIフィルタ（クリアタイプ別） */
+  cpiFilters: Record<CpiClearType, CpiRangeFilter>
+  /** CPIフィルタ展開状態 */
+  cpiFilterExpanded: boolean
+  /** 非表示カラムのフィルタも表示するか */
+  showHiddenFilters: boolean
+  /** フィルタパネルの展開状態 */
+  filterPanelExpanded: boolean
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -54,6 +90,40 @@ interface FilterState {
   ) => void
   /** レーダフィルタ展開を切り替え */
   toggleRadarFilterExpanded: () => void
+  /** 収録状況フィルターを設定 */
+  setVersionFilter: (version: VersionFilter) => void
+  /** 楽曲パックを切り替え */
+  togglePackId: (packId: number) => void
+  /** 楽曲パックを設定 */
+  setSelectedPackIds: (packIds: Set<number>) => void
+  /** パック名一覧を設定 */
+  setLabels: (labels: LabelResponse) => void
+  /** SPノーマル難易度キーを切り替え */
+  toggleSpNormalKey: (key: string) => void
+  /** SPノーマル難易度キーを設定 */
+  setSelectedSpNormalKeys: (keys: Set<string>) => void
+  /** SPハード難易度キーを切り替え */
+  toggleSpHardKey: (key: string) => void
+  /** SPハード難易度キーを設定 */
+  setSelectedSpHardKeys: (keys: Set<string>) => void
+  /** DP難易度表フィルターを設定 */
+  setDpDifficultyFilter: (filter: DpDifficultyFilter) => void
+  /** SP難易度表ラベル定義を設定（☆12/☆11をマージ） */
+  setSpDifficultyLabels: (sp12: SpDifficultyTableLabelsResponse, sp11: SpDifficultyTableLabelsResponse) => void
+  /** 難易度表フィルタ展開を切り替え */
+  toggleDifficultyTableFilterExpanded: () => void
+  /** CPIフィルタを設定 */
+  setCpiFilter: (clearType: CpiClearType, filter: CpiRangeFilter) => void
+  /** CPIフィルタ展開を切り替え */
+  toggleCpiFilterExpanded: () => void
+  /** フィルタパネルの展開を切り替え */
+  toggleFilterPanelExpanded: () => void
+  /** フィルタパネルの展開状態を設定 */
+  setFilterPanelExpanded: (expanded: boolean) => void
+  /** 非表示フィルタ表示を切り替え */
+  toggleShowHiddenFilters: () => void
+  /** 非表示フィルタ表示を設定 */
+  setShowHiddenFilters: (show: boolean) => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -77,6 +147,16 @@ const getInitialRadarFilters = () => ({
   chord: { ...initialRadarFilter },
 })
 
+const initialCpiFilter: CpiRangeFilter = { min: '', max: '' }
+
+const getInitialCpiFilters = (): Record<CpiClearType, CpiRangeFilter> => ({
+  easy: { ...initialCpiFilter },
+  normal: { ...initialCpiFilter },
+  hard: { ...initialCpiFilter },
+  exh: { ...initialCpiFilter },
+  fc: { ...initialCpiFilter },
+})
+
 const getInitialState = () => ({
   searchText: '',
   difficulties: getInitialDifficulties(),
@@ -88,6 +168,18 @@ const getInitialState = () => ({
   noteCountMax: '',
   radarFilters: getInitialRadarFilters(),
   radarFilterExpanded: false,
+  versionFilter: 'all' as VersionFilter,
+  selectedPackIds: new Set<number>(),
+  labels: [] as LabelResponse,
+  selectedSpNormalKeys: new Set<string>(),
+  selectedSpHardKeys: new Set<string>(),
+  dpDifficultyFilter: { min: '', max: '' } as DpDifficultyFilter,
+  spDifficultyLabels: null as SpDifficultyTableLabelsResponse | null,
+  difficultyTableFilterExpanded: false,
+  cpiFilters: getInitialCpiFilters(),
+  cpiFilterExpanded: false,
+  showHiddenFilters: false,
+  filterPanelExpanded: true,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -102,6 +194,15 @@ interface PersistedFilterState {
   noteCountMax: string
   radarFilters: FilterState['radarFilters']
   radarFilterExpanded: boolean
+  versionFilter: VersionFilter
+  selectedPackIds: number[]
+  selectedSpNormalKeys: string[]
+  selectedSpHardKeys: string[]
+  dpDifficultyFilter: DpDifficultyFilter
+  difficultyTableFilterExpanded: boolean
+  cpiFilters: Record<CpiClearType, CpiRangeFilter>
+  cpiFilterExpanded: boolean
+  showHiddenFilters: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -142,7 +243,88 @@ export const useFilterStore = create<FilterState>()(
       toggleRadarFilterExpanded: () =>
         set((state) => ({ radarFilterExpanded: !state.radarFilterExpanded })),
 
-      resetFilters: () => set(getInitialState()),
+      setVersionFilter: (versionFilter) => set({ versionFilter }),
+
+      togglePackId: (packId) =>
+        set((state) => {
+          const newPackIds = new Set(state.selectedPackIds)
+          if (newPackIds.has(packId)) {
+            newPackIds.delete(packId)
+          } else {
+            newPackIds.add(packId)
+          }
+          return { selectedPackIds: newPackIds }
+        }),
+
+      setSelectedPackIds: (selectedPackIds) => set({ selectedPackIds }),
+
+      setLabels: (labels) => set({ labels }),
+
+      toggleSpNormalKey: (key) =>
+        set((state) => {
+          const newKeys = new Set(state.selectedSpNormalKeys)
+          if (newKeys.has(key)) {
+            newKeys.delete(key)
+          } else {
+            newKeys.add(key)
+          }
+          return { selectedSpNormalKeys: newKeys }
+        }),
+
+      setSelectedSpNormalKeys: (selectedSpNormalKeys) => set({ selectedSpNormalKeys }),
+
+      toggleSpHardKey: (key) =>
+        set((state) => {
+          const newKeys = new Set(state.selectedSpHardKeys)
+          if (newKeys.has(key)) {
+            newKeys.delete(key)
+          } else {
+            newKeys.add(key)
+          }
+          return { selectedSpHardKeys: newKeys }
+        }),
+
+      setSelectedSpHardKeys: (selectedSpHardKeys) => set({ selectedSpHardKeys }),
+
+      setDpDifficultyFilter: (dpDifficultyFilter) => set({ dpDifficultyFilter }),
+
+      setSpDifficultyLabels: (sp12, sp11) => set({
+        // ☆12と☆11のラベルをマージ（同一キーは☆12を優先）
+        spDifficultyLabels: {
+          normal: { ...sp11.normal, ...sp12.normal },
+          hard: { ...sp11.hard, ...sp12.hard },
+        },
+      }),
+
+      toggleDifficultyTableFilterExpanded: () =>
+        set((state) => ({ difficultyTableFilterExpanded: !state.difficultyTableFilterExpanded })),
+
+      setCpiFilter: (clearType, filter) =>
+        set((state) => ({
+          cpiFilters: {
+            ...state.cpiFilters,
+            [clearType]: filter,
+          },
+        })),
+
+      toggleCpiFilterExpanded: () =>
+        set((state) => ({ cpiFilterExpanded: !state.cpiFilterExpanded })),
+
+      toggleFilterPanelExpanded: () =>
+        set((state) => ({ filterPanelExpanded: !state.filterPanelExpanded })),
+
+      setFilterPanelExpanded: (filterPanelExpanded) => set({ filterPanelExpanded }),
+
+      toggleShowHiddenFilters: () =>
+        set((state) => ({ showHiddenFilters: !state.showHiddenFilters })),
+
+      setShowHiddenFilters: (showHiddenFilters) => set({ showHiddenFilters }),
+
+      resetFilters: () => set((state) => ({
+        ...getInitialState(),
+        labels: state.labels,
+        spDifficultyLabels: state.spDifficultyLabels,
+      })),
     }),
     {
       name: 'iidx-radar-viewer-filters',
@@ -156,6 +338,14 @@ export const useFilterStore = create<FilterState>()(
             state: {
               ...parsed.state,
               difficulties: new Set(parsed.state.difficulties),
+              selectedPackIds: new Set(parsed.state.selectedPackIds ?? []),
+              selectedSpNormalKeys: new Set(parsed.state.selectedSpNormalKeys ?? []),
+              selectedSpHardKeys: new Set(parsed.state.selectedSpHardKeys ?? []),
+              dpDifficultyFilter: parsed.state.dpDifficultyFilter ?? { min: '', max: '' },
+              difficultyTableFilterExpanded: parsed.state.difficultyTableFilterExpanded ?? false,
+              cpiFilters: parsed.state.cpiFilters ?? getInitialCpiFilters(),
+              cpiFilterExpanded: parsed.state.cpiFilterExpanded ?? false,
+              showHiddenFilters: parsed.state.showHiddenFilters ?? false,
             },
           }
         },
@@ -172,6 +362,15 @@ export const useFilterStore = create<FilterState>()(
             noteCountMax: state.noteCountMax,
             radarFilters: state.radarFilters,
             radarFilterExpanded: state.radarFilterExpanded,
+            versionFilter: state.versionFilter,
+            selectedPackIds: Array.from(state.selectedPackIds),
+            selectedSpNormalKeys: Array.from(state.selectedSpNormalKeys),
+            selectedSpHardKeys: Array.from(state.selectedSpHardKeys),
+            dpDifficultyFilter: state.dpDifficultyFilter,
+            difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
+            cpiFilters: state.cpiFilters,
+            cpiFilterExpanded: state.cpiFilterExpanded,
+            showHiddenFilters: state.showHiddenFilters,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -188,6 +387,15 @@ export const useFilterStore = create<FilterState>()(
         noteCountMax: state.noteCountMax,
         radarFilters: state.radarFilters,
         radarFilterExpanded: state.radarFilterExpanded,
+        versionFilter: state.versionFilter,
+        selectedPackIds: state.selectedPackIds,
+        selectedSpNormalKeys: state.selectedSpNormalKeys,
+        selectedSpHardKeys: state.selectedSpHardKeys,
+        dpDifficultyFilter: state.dpDifficultyFilter,
+        difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
+        cpiFilters: state.cpiFilters,
+        cpiFilterExpanded: state.cpiFilterExpanded,
+        showHiddenFilters: state.showHiddenFilters,
       }),
     }
   )

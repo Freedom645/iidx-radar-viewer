@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ChartData, PlayMode } from '@/types'
 import { fetchAllData, transformToChartData } from '@/api'
+import { useFilterStore } from './filterStore'
 
 interface ChartState {
   /** 全譜面データ */
@@ -31,6 +32,8 @@ export const useChartStore = create<ChartState>()(
         try {
           const rawData = await fetchAllData()
           const charts = transformToChartData(rawData)
+          useFilterStore.getState().setLabels(rawData.labels)
+          useFilterStore.getState().setSpDifficultyLabels(rawData.sp12Labels, rawData.sp11Labels)
           set({ charts, loading: false })
         } catch (error) {
           const message = error instanceof Error ? error.message : 'データの取得に失敗しました'

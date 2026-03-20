@@ -3,6 +3,12 @@ import type {
   TitleResponse,
   RadarResponse,
   ChartInfoResponse,
+  LabelResponse,
+  SongToLabelResponse,
+  SpDifficultyTableSongsResponse,
+  SpDifficultyTableLabelsResponse,
+  DpDifficultyTableSongsResponse,
+  CpiResponse,
 } from '@/types'
 
 const BASE_URL = 'https://chinimuruhi.github.io/IIDX-Data-Table'
@@ -36,13 +42,91 @@ export async function fetchChartInfo(): Promise<ChartInfoResponse> {
   return response.data
 }
 
+/** パック名一覧を取得 */
+export async function fetchLabels(): Promise<LabelResponse> {
+  const response = await client.get<LabelResponse>('/konami/label.json')
+  return response.data
+}
+
+/** 楽曲とパックの紐づけを取得 */
+export async function fetchSongToLabel(): Promise<SongToLabelResponse> {
+  const response = await client.get<SongToLabelResponse>('/konami/song_to_label.json')
+  return response.data
+}
+
+/** SP☆12難易度表の譜面データを取得 */
+export async function fetchSp12DifficultySongs(): Promise<SpDifficultyTableSongsResponse> {
+  const response = await client.get<SpDifficultyTableSongsResponse>('/difficulty/sp12/songs_dict.json')
+  return response.data
+}
+
+/** SP☆12難易度表のラベル定義を取得 */
+export async function fetchSp12DifficultyLabels(): Promise<SpDifficultyTableLabelsResponse> {
+  const response = await client.get<SpDifficultyTableLabelsResponse>('/difficulty/sp12/difficulty.json')
+  return response.data
+}
+
+/** SP☆11難易度表の譜面データを取得 */
+export async function fetchSp11DifficultySongs(): Promise<SpDifficultyTableSongsResponse> {
+  const response = await client.get<SpDifficultyTableSongsResponse>('/difficulty/sp11/songs_dict.json')
+  return response.data
+}
+
+/** SP☆11難易度表のラベル定義を取得 */
+export async function fetchSp11DifficultyLabels(): Promise<SpDifficultyTableLabelsResponse> {
+  const response = await client.get<SpDifficultyTableLabelsResponse>('/difficulty/sp11/difficulty.json')
+  return response.data
+}
+
+/** DP難易度表の譜面データを取得 */
+export async function fetchDpDifficultySongs(): Promise<DpDifficultyTableSongsResponse> {
+  const response = await client.get<DpDifficultyTableSongsResponse>('/difficulty/dp/songs_dict.json')
+  return response.data
+}
+
+/** CPIデータを取得 */
+export async function fetchCpiData(): Promise<CpiResponse> {
+  const response = await client.get<CpiResponse>('/cpi/songs_dict.json')
+  return response.data
+}
+
+/** 難易度表データのデフォルト値（取得失敗時に使用） */
+const EMPTY_SP_DIFFICULTY_SONGS: SpDifficultyTableSongsResponse = {}
+const EMPTY_SP_DIFFICULTY_LABELS: SpDifficultyTableLabelsResponse = { hard: {}, normal: {} }
+const EMPTY_DP_DIFFICULTY_SONGS: DpDifficultyTableSongsResponse = {}
+const EMPTY_CPI_DATA: CpiResponse = {}
+
 /** すべてのデータを並列取得 */
 export async function fetchAllData() {
-  const [titles, spRadar, dpRadar, chartInfo] = await Promise.all([
+  // 必須データ
+  const [titles, spRadar, dpRadar, chartInfo, labels, songToLabel] = await Promise.all([
     fetchTitles(),
     fetchSpRadar(),
     fetchDpRadar(),
     fetchChartInfo(),
+    fetchLabels(),
+    fetchSongToLabel(),
   ])
-  return { titles, spRadar, dpRadar, chartInfo }
+
+  // 難易度表データ（非必須: 失敗しても空データとして扱う）
+  const difficultyResults = await Promise.allSettled([
+    fetchSp12DifficultySongs(),
+    fetchSp12DifficultyLabels(),
+    fetchSp11DifficultySongs(),
+    fetchSp11DifficultyLabels(),
+    fetchDpDifficultySongs(),
+    fetchCpiData(),
+  ])
+
+  const sp12Songs = difficultyResults[0].status === 'fulfilled' ? difficultyResults[0].value : EMPTY_SP_DIFFICULTY_SONGS
+  const sp12Labels = difficultyResults[1].status === 'fulfilled' ? difficultyResults[1].value : EMPTY_SP_DIFFICULTY_LABELS
+  const sp11Songs = difficultyResults[2].status === 'fulfilled' ? difficultyResults[2].value : EMPTY_SP_DIFFICULTY_SONGS
+  const sp11Labels = difficultyResults[3].status === 'fulfilled' ? difficultyResults[3].value : EMPTY_SP_DIFFICULTY_LABELS
+  const dpDifficultySongs = difficultyResults[4].status === 'fulfilled' ? difficultyResults[4].value : EMPTY_DP_DIFFICULTY_SONGS
+  const cpiData = difficultyResults[5].status === 'fulfilled' ? difficultyResults[5].value : EMPTY_CPI_DATA
+
+  return {
+    titles, spRadar, dpRadar, chartInfo, labels, songToLabel,
+    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs, cpiData,
+  }
 }

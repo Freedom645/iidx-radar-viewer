@@ -1,6 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings, StatsPanel } from '@/components'
+import { CPI_CLEAR_TYPES } from '@/types'
+import { useUrlSync } from '@/hooks'
 
 /** BPM文字列をパースして[min, max]を返す */
 function parseBpm(bpmStr: string): [number, number] {
@@ -16,6 +18,23 @@ function parseBpm(bpmStr: string): [number, number] {
 function App() {
   const { charts, loading, error, playMode, fetchCharts, setPlayMode } =
     useChartStore()
+  useUrlSync()
+
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerHeight, setHeaderHeight] = useState(0)
+
+  const updateHeaderHeight = useCallback(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight)
+    }
+  }, [])
+
+  useEffect(() => {
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [updateHeaderHeight])
+
   const {
     searchText,
     difficulties,
@@ -26,6 +45,12 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    versionFilter,
+    selectedPackIds,
+    selectedSpNormalKeys,
+    selectedSpHardKeys,
+    dpDifficultyFilter,
+    cpiFilters,
   } = useFilterStore()
 
   useEffect(() => {
@@ -43,6 +68,15 @@ function App() {
         !chart.title.toLowerCase().includes(searchText.toLowerCase())
       ) {
         return false
+      }
+
+      // 収録状況フィルタ
+      if (versionFilter === 'ac' && !chart.inAc) return false
+      if (versionFilter === 'inf' && !chart.inInf) return false
+
+      // 楽曲パックフィルタ
+      if (selectedPackIds.size > 0) {
+        if (chart.labelId === null || !selectedPackIds.has(chart.labelId)) return false
       }
 
       // 難易度フィルタ
@@ -101,6 +135,39 @@ function App() {
       )
         return false
 
+      // SPノーマル難易度フィルタ（☆12/☆11共通、マルチチェックボックス）
+      if (selectedSpNormalKeys.size > 0) {
+        const rating = chart.sp12Rating ?? chart.sp11Rating
+        if (!rating || rating.normalValue < 0) return false
+        if (!selectedSpNormalKeys.has(String(rating.normalValue))) return false
+      }
+
+      // SPハード難易度フィルタ（☆12/☆11共通、マルチチェックボックス）
+      if (selectedSpHardKeys.size > 0) {
+        const rating = chart.sp12Rating ?? chart.sp11Rating
+        if (!rating || rating.hardValue < 0) return false
+        if (!selectedSpHardKeys.has(String(rating.hardValue))) return false
+      }
+
+      // DP難易度表フィルタ（min/maxはstring型。"0"はtruthyでフィルタ発動、""はスキップ）
+      if (dpDifficultyFilter.min || dpDifficultyFilter.max) {
+        if (!chart.dpRating) return false
+        if (dpDifficultyFilter.min && chart.dpRating.value < Number(dpDifficultyFilter.min)) return false
+        if (dpDifficultyFilter.max && chart.dpRating.value > Number(dpDifficultyFilter.max)) return false
+      }
+
+      // CPIフィルタ（min/maxはstring型。"0"はtruthyでフィルタ発動、""はスキップ）
+      for (const clearType of CPI_CLEAR_TYPES) {
+        const filter = cpiFilters[clearType]
+        if (filter.min || filter.max) {
+          const cpiValue = chart.cpi?.[clearType]
+          // 未設定の譜面は検索条件指定時に除外
+          if (cpiValue == null) return false
+          if (filter.min && cpiValue < Number(filter.min)) return false
+          if (filter.max && cpiValue > Number(filter.max)) return false
+        }
+      }
+
       return true
     })
   }, [
@@ -115,6 +182,12 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    versionFilter,
+    selectedPackIds,
+    selectedSpNormalKeys,
+    selectedSpHardKeys,
+    dpDifficultyFilter,
+    cpiFilters,
   ])
 
   if (error) {
@@ -136,28 +209,24 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <header ref={headerRef} className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">
             IIDX Radar Viewer
           </h1>
+          <PlayModeTabs value={playMode} onChange={setPlayMode} />
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* プレイモードタブ */}
-        <div className="bg-white rounded-t-lg shadow-sm">
-          <PlayModeTabs value={playMode} onChange={setPlayMode} />
-        </div>
-
+      <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col" style={{ height: headerHeight ? `calc(100vh - ${headerHeight}px)` : '100vh' }}>
         {/* フィルタパネル */}
-        <div className="mt-4">
+        <div>
           <FilterPanel />
         </div>
 
         {/* ツールバー */}
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-3 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             検索結果: <span className="font-medium">{filteredCharts.length}</span> 件
           </div>
@@ -165,10 +234,12 @@ function App() {
         </div>
 
         {/* 統計情報 */}
-        <StatsPanel data={filteredCharts} />
+        <div className="mt-3">
+          <StatsPanel data={filteredCharts} />
+        </div>
 
         {/* テーブル */}
-        <div className="mt-4 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="mt-3 bg-white rounded-lg shadow-sm overflow-hidden flex-1 min-h-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-3 text-gray-500">

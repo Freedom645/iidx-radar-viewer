@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { ChartData, Difficulty, PlayMode } from '@/types'
-import { DIFFICULTY_SHORT } from '@/types'
+import { CPI_CLEAR_TYPES, CPI_CLEAR_TYPE_LABELS, DIFFICULTY_SHORT } from '@/types'
 import { useColumnStore, useSortStore, type ColumnId } from '@/stores'
 
 interface ChartTableProps {
@@ -27,6 +27,14 @@ const DIFFICULTY_BG_COLORS: Record<Difficulty, string> = {
 const ROW_HEIGHT = 41
 
 const columnHelper = createColumnHelper<ChartData>()
+
+/** 数値カラム用ソート関数（同値は楽曲名順） */
+const numericWithTitleFallback: typeof import('@tanstack/react-table').sortingFns.basic = (rowA, rowB, columnId) => {
+  const a = rowA.getValue<number>(columnId)
+  const b = rowB.getValue<number>(columnId)
+  if (a !== b) return a - b
+  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
+}
 
 export function ChartTable({ data, playMode }: ChartTableProps) {
   const { sorting, setSorting } = useSortStore()
@@ -136,6 +144,83 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
         minSize: 70,
         maxSize: 70,
       }),
+      ...(playMode === 'SP'
+        ? [
+            ...CPI_CLEAR_TYPES.map((clearType) =>
+              columnHelper.accessor(
+                (row) => row.cpi?.[clearType] ?? undefined,
+                {
+                  id: `cpi${clearType.charAt(0).toUpperCase() + clearType.slice(1)}`,
+                  header: `CPI ${CPI_CLEAR_TYPE_LABELS[clearType]}`,
+                  cell: (info) => {
+                    const val = info.getValue()
+                    return val !== undefined ? val.toFixed(2) : ''
+                  },
+                  sortUndefined: 'last',
+                  sortingFn: numericWithTitleFallback,
+                  size: clearType === 'normal' ? 90 : 80,
+                  minSize: clearType === 'normal' ? 90 : 80,
+                  maxSize: clearType === 'normal' ? 90 : 80,
+                },
+              ),
+            ),
+            columnHelper.accessor(
+              (row) => {
+                const v = (row.sp12Rating ?? row.sp11Rating)?.normalValue
+                return v != null && v >= 0 ? v : undefined
+              },
+              {
+                id: 'spNormal',
+                header: 'ノーマル難易度',
+                cell: (info) => {
+                  const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
+                  return rating?.normalLabel ?? ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 100,
+                minSize: 100,
+                maxSize: 100,
+              },
+            ),
+            columnHelper.accessor(
+              (row) => {
+                const v = (row.sp12Rating ?? row.sp11Rating)?.hardValue
+                return v != null && v >= 0 ? v : undefined
+              },
+              {
+                id: 'spHard',
+                header: 'ハード難易度',
+                cell: (info) => {
+                  const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
+                  return rating?.hardLabel ?? ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 100,
+                minSize: 100,
+                maxSize: 100,
+              },
+            ),
+          ]
+        : [
+            columnHelper.accessor(
+              (row) => row.dpRating?.value ?? undefined,
+              {
+                id: 'dpDifficulty',
+                header: 'DP難易度',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(1) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 80,
+                minSize: 80,
+                maxSize: 80,
+              },
+            ),
+          ]),
     ],
     [playMode]
   )
@@ -185,8 +270,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
   return (
     <div
       ref={tableContainerRef}
-      className="overflow-auto"
-      style={{ height: 'calc(100vh - 350px)', minHeight: '400px' }}
+      className="overflow-auto h-full"
     >
       <table className="w-full divide-y divide-gray-200 table-fixed">
         <colgroup>

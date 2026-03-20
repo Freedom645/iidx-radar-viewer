@@ -64,6 +64,144 @@ export const RADAR_TYPES: RadarType[] = [
   "CHORD",
 ];
 
+/** CPIクリアタイプ */
+export type CpiClearType = "easy" | "normal" | "hard" | "exh" | "fc";
+
+/** CPIクリアタイプの配列（表示順） */
+export const CPI_CLEAR_TYPES: CpiClearType[] = [
+  "easy",
+  "normal",
+  "hard",
+  "exh",
+  "fc",
+];
+
+/** CPIクリアタイプの表示ラベル */
+export const CPI_CLEAR_TYPE_LABELS: Record<CpiClearType, string> = {
+  easy: "EASY",
+  normal: "NORMAL",
+  hard: "HARD",
+  exh: "EX HARD",
+  fc: "FC",
+};
+
+/** CPIクリアタイプとJSONキーの対応 */
+const CPI_JSON_KEY: Record<CpiClearType, string> = {
+  easy: "easy",
+  normal: "clear",
+  hard: "hard",
+  exh: "exh",
+  fc: "fc",
+};
+
+/** CPIクリアタイプからJSONキーに変換 */
+export function cpiJsonKey(clearType: CpiClearType): string {
+  return CPI_JSON_KEY[clearType];
+}
+
+/** CPI値（5種類のクリアタイプ別） */
+export interface CpiData {
+  easy: number | null;
+  normal: number | null;
+  hard: number | null;
+  exh: number | null;
+  fc: number | null;
+}
+
+/** APIレスポンス: CPI値の個別エントリ */
+export interface CpiEntryResponse {
+  cpi_value: number;
+  kojinsa_value: number;
+}
+
+/** APIレスポンス: CPI難易度別データ */
+export interface CpiDifficultyResponse {
+  easy?: CpiEntryResponse;
+  clear?: CpiEntryResponse;
+  hard?: CpiEntryResponse;
+  exh?: CpiEntryResponse;
+  fc?: CpiEntryResponse;
+}
+
+/** APIレスポンス: CPIデータ */
+export type CpiResponse = Record<
+  string,
+  {
+    A?: CpiDifficultyResponse;
+    H?: CpiDifficultyResponse;
+    L?: CpiDifficultyResponse;
+    cpi_id: string;
+  }
+>;
+
+/** AC/INFINITAS収録状況フィルター */
+export type VersionFilter = "all" | "ac" | "inf";
+
+/** 難易度表キー */
+export type DifficultyTableKey = "A" | "H" | "L";
+
+/** Difficultyから難易度表キー(A/H/L)への変換マップ */
+const DIFFICULTY_TO_TABLE_KEY: Partial<Record<Difficulty, DifficultyTableKey>> = {
+  ANOTHER: "A",
+  HYPER: "H",
+  LEGGENDARIA: "L",
+};
+
+/** Difficultyを難易度表キー(A/H/L)に変換。対象外の場合はundefined */
+export function tableKeyFromDifficulty(
+  difficulty: Difficulty,
+): DifficultyTableKey | undefined {
+  return DIFFICULTY_TO_TABLE_KEY[difficulty];
+}
+
+/** APIレスポンス: SP難易度表の譜面データ */
+export type SpDifficultyTableSongsResponse = Record<
+  string,
+  Record<string, { n_value: number; h_value: number }>
+>;
+
+/** APIレスポンス: SP難易度表のラベル定義 */
+export type SpDifficultyTableLabelsResponse = {
+  hard: Record<string, string>;
+  normal: Record<string, string>;
+};
+
+/** APIレスポンス: DP難易度表の譜面データ */
+export type DpDifficultyTableSongsResponse = Record<
+  string,
+  Record<string, { value: number; snj_id: string }>
+>;
+
+/** SP難易度表の難易度情報 */
+export interface SpDifficultyRating {
+  /** ノーマル難易度値（キー値） */
+  normalValue: number;
+  /** ノーマル難易度ラベル */
+  normalLabel: string;
+  /** ハード難易度値（キー値） */
+  hardValue: number;
+  /** ハード難易度ラベル */
+  hardLabel: string;
+}
+
+/** DP難易度表の難易度情報 */
+export interface DpDifficultyRating {
+  /** 難易度値 */
+  value: number;
+}
+
+/** APIレスポンス: パック名一覧（インデックスがlabel ID） */
+export type LabelResponse = string[];
+
+/** APIレスポンス: 楽曲とパックの紐づけ */
+export type SongToLabelResponse = Record<
+  string,
+  {
+    in_leggendaria: boolean;
+    label: number;
+  }
+>;
+
 /** APIレスポンス: 楽曲名 */
 export type TitleResponse = Record<string, string>;
 
@@ -140,6 +278,22 @@ export interface ChartData {
   bpm: string;
   /** レーダ値 */
   radar: RadarData;
+  /** AC収録 */
+  inAc: boolean;
+  /** INFINITAS収録 */
+  inInf: boolean;
+  /** パックID（INFINITAS未収録の場合はnull） */
+  labelId: number | null;
+  /** パック名（INFINITAS未収録の場合はnull） */
+  labelName: string | null;
+  /** SP☆12難易度表 */
+  sp12Rating: SpDifficultyRating | null;
+  /** SP☆11難易度表 */
+  sp11Rating: SpDifficultyRating | null;
+  /** DP難易度表 */
+  dpRating: DpDifficultyRating | null;
+  /** CPI値（SP☆12のみ） */
+  cpi: CpiData | null;
 }
 
 /** BPM値の型 */
