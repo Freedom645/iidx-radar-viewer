@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Difficulty, VersionFilter } from '@/types'
+import type { Difficulty, LabelResponse, VersionFilter } from '@/types'
 
 interface RadarFilter {
   min: number
@@ -39,6 +39,8 @@ interface FilterState {
   versionFilter: VersionFilter
   /** 選択中の楽曲パックID（空は「すべて」） */
   selectedPackIds: Set<number>
+  /** パック名一覧（フィルター選択肢用） */
+  labels: LabelResponse
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -64,6 +66,8 @@ interface FilterState {
   togglePackId: (packId: number) => void
   /** 楽曲パックを設定 */
   setSelectedPackIds: (packIds: Set<number>) => void
+  /** パック名一覧を設定 */
+  setLabels: (labels: LabelResponse) => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -100,6 +104,7 @@ const getInitialState = () => ({
   radarFilterExpanded: false,
   versionFilter: 'all' as VersionFilter,
   selectedPackIds: new Set<number>(),
+  labels: [] as LabelResponse,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -171,7 +176,9 @@ export const useFilterStore = create<FilterState>()(
 
       setSelectedPackIds: (selectedPackIds) => set({ selectedPackIds }),
 
-      resetFilters: () => set(getInitialState()),
+      setLabels: (labels) => set({ labels }),
+
+      resetFilters: () => set((state) => ({ ...getInitialState(), labels: state.labels })),
     }),
     {
       name: 'iidx-radar-viewer-filters',

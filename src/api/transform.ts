@@ -24,6 +24,20 @@ interface RawData {
   songToLabel: SongToLabelResponse;
 }
 
+/** パック情報を解決 */
+function resolveLabel(
+  songLabel: SongToLabelResponse[string] | undefined,
+  difficulty: string,
+  labels: LabelResponse,
+): { labelId: number | null; labelName: string | null } {
+  const isInPack =
+    songLabel != null &&
+    (difficulty !== "LEGGENDARIA" || songLabel.in_leggendaria);
+  const labelId = isInPack ? songLabel.label : null;
+  const labelName = labelId != null ? (labels[labelId] ?? null) : null;
+  return { labelId, labelName };
+}
+
 /** レーダ値を抽出 */
 function extractRadar(
   radar: RadarResponse[string] | undefined,
@@ -99,12 +113,7 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           });
         }
 
-        // LEGGENDARIA譜面はin_leggendariaフラグがtrueの場合のみパックに含まれる
-        const isInPack =
-          songLabel != null &&
-          (difficulty !== "LEGGENDARIA" || songLabel.in_leggendaria);
-        const labelId = isInPack ? songLabel.label : null;
-        const labelName = labelId != null ? (labels[labelId] ?? null) : null;
+        const { labelId, labelName } = resolveLabel(songLabel, difficulty, labels);
 
         charts.push({
           songId,
@@ -135,11 +144,7 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           ? formatBpmForDifficulty(info.bpm, "DP", diffIndex)
           : "-";
 
-        const isInPack =
-          songLabel != null &&
-          (difficulty !== "LEGGENDARIA" || songLabel.in_leggendaria);
-        const labelId = isInPack ? songLabel.label : null;
-        const labelName = labelId != null ? (labels[labelId] ?? null) : null;
+        const { labelId, labelName } = resolveLabel(songLabel, difficulty, labels);
 
         charts.push({
           songId,

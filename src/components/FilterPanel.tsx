@@ -1,4 +1,4 @@
-import { useFilterStore, useChartStore } from '@/stores'
+import { useFilterStore } from '@/stores'
 import { SearchInput } from './SearchInput'
 import { DifficultyFilter } from './DifficultyFilter'
 import { LevelFilter } from './LevelFilter'
@@ -30,9 +30,9 @@ export function FilterPanel() {
     setVersionFilter,
     selectedPackIds,
     togglePackId,
+    labels,
     resetFilters,
   } = useFilterStore()
-  const { labels } = useChartStore()
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
