@@ -139,7 +139,10 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
       ...(playMode === 'SP'
         ? [
             columnHelper.accessor(
-              (row) => (row.sp12Rating ?? row.sp11Rating)?.normalValue ?? null,
+              (row) => {
+                const v = (row.sp12Rating ?? row.sp11Rating)?.normalValue
+                return v != null && v >= 0 ? v : null
+              },
               {
                 id: 'spNormal',
                 header: 'ノーマル難易度',
@@ -147,16 +150,12 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                   const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
                   return rating?.normalLabel ?? ''
                 },
-                sortingFn: (rowA, rowB) => {
-                  const a = rowA.getValue<number | null>('spNormal')
-                  const b = rowB.getValue<number | null>('spNormal')
-                  if (a === null && b === null) return 0
-                  if (a === null) return 1
-                  if (b === null) return -1
-                  if (a < 0 && b < 0) return 0
-                  if (a < 0) return 1
-                  if (b < 0) return -1
-                  return a - b
+                sortUndefined: 'last',
+                sortingFn: (rowA, rowB, columnId) => {
+                  const a = rowA.getValue<number | null>(columnId)!
+                  const b = rowB.getValue<number | null>(columnId)!
+                  if (a !== b) return a - b
+                  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
                 },
                 size: 100,
                 minSize: 100,
@@ -164,7 +163,10 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
               },
             ),
             columnHelper.accessor(
-              (row) => (row.sp12Rating ?? row.sp11Rating)?.hardValue ?? null,
+              (row) => {
+                const v = (row.sp12Rating ?? row.sp11Rating)?.hardValue
+                return v != null && v >= 0 ? v : null
+              },
               {
                 id: 'spHard',
                 header: 'ハード難易度',
@@ -172,16 +174,12 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                   const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
                   return rating?.hardLabel ?? ''
                 },
-                sortingFn: (rowA, rowB) => {
-                  const a = rowA.getValue<number | null>('spHard')
-                  const b = rowB.getValue<number | null>('spHard')
-                  if (a === null && b === null) return 0
-                  if (a === null) return 1
-                  if (b === null) return -1
-                  if (a < 0 && b < 0) return 0
-                  if (a < 0) return 1
-                  if (b < 0) return -1
-                  return a - b
+                sortUndefined: 'last',
+                sortingFn: (rowA, rowB, columnId) => {
+                  const a = rowA.getValue<number | null>(columnId)!
+                  const b = rowB.getValue<number | null>(columnId)!
+                  if (a !== b) return a - b
+                  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
                 },
                 size: 100,
                 minSize: 100,
@@ -199,13 +197,12 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                   const val = info.getValue()
                   return val !== null ? val.toFixed(1) : ''
                 },
-                sortingFn: (rowA, rowB) => {
-                  const a = rowA.getValue<number | null>('dpDifficulty')
-                  const b = rowB.getValue<number | null>('dpDifficulty')
-                  if (a === null && b === null) return 0
-                  if (a === null) return 1
-                  if (b === null) return -1
-                  return a - b
+                sortUndefined: 'last',
+                sortingFn: (rowA, rowB, columnId) => {
+                  const a = rowA.getValue<number | null>(columnId)!
+                  const b = rowB.getValue<number | null>(columnId)!
+                  if (a !== b) return a - b
+                  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
                 },
                 size: 80,
                 minSize: 80,
