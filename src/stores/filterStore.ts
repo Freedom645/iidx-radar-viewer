@@ -67,6 +67,10 @@ interface FilterState {
   cpiFilters: Record<CpiClearType, CpiRangeFilter>
   /** CPIフィルタ展開状態 */
   cpiFilterExpanded: boolean
+  /** 非表示カラムのフィルタも表示するか */
+  showHiddenFilters: boolean
+  /** フィルタパネルの展開状態 */
+  filterPanelExpanded: boolean
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -96,8 +100,12 @@ interface FilterState {
   setLabels: (labels: LabelResponse) => void
   /** SPノーマル難易度キーを切り替え */
   toggleSpNormalKey: (key: string) => void
+  /** SPノーマル難易度キーを設定 */
+  setSelectedSpNormalKeys: (keys: Set<string>) => void
   /** SPハード難易度キーを切り替え */
   toggleSpHardKey: (key: string) => void
+  /** SPハード難易度キーを設定 */
+  setSelectedSpHardKeys: (keys: Set<string>) => void
   /** DP難易度表フィルターを設定 */
   setDpDifficultyFilter: (filter: DpDifficultyFilter) => void
   /** SP難易度表ラベル定義を設定（☆12/☆11をマージ） */
@@ -108,6 +116,14 @@ interface FilterState {
   setCpiFilter: (clearType: CpiClearType, filter: CpiRangeFilter) => void
   /** CPIフィルタ展開を切り替え */
   toggleCpiFilterExpanded: () => void
+  /** フィルタパネルの展開を切り替え */
+  toggleFilterPanelExpanded: () => void
+  /** フィルタパネルの展開状態を設定 */
+  setFilterPanelExpanded: (expanded: boolean) => void
+  /** 非表示フィルタ表示を切り替え */
+  toggleShowHiddenFilters: () => void
+  /** 非表示フィルタ表示を設定 */
+  setShowHiddenFilters: (show: boolean) => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -162,6 +178,8 @@ const getInitialState = () => ({
   difficultyTableFilterExpanded: false,
   cpiFilters: getInitialCpiFilters(),
   cpiFilterExpanded: false,
+  showHiddenFilters: false,
+  filterPanelExpanded: true,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -184,6 +202,7 @@ interface PersistedFilterState {
   difficultyTableFilterExpanded: boolean
   cpiFilters: Record<CpiClearType, CpiRangeFilter>
   cpiFilterExpanded: boolean
+  showHiddenFilters: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -252,6 +271,8 @@ export const useFilterStore = create<FilterState>()(
           return { selectedSpNormalKeys: newKeys }
         }),
 
+      setSelectedSpNormalKeys: (selectedSpNormalKeys) => set({ selectedSpNormalKeys }),
+
       toggleSpHardKey: (key) =>
         set((state) => {
           const newKeys = new Set(state.selectedSpHardKeys)
@@ -262,6 +283,8 @@ export const useFilterStore = create<FilterState>()(
           }
           return { selectedSpHardKeys: newKeys }
         }),
+
+      setSelectedSpHardKeys: (selectedSpHardKeys) => set({ selectedSpHardKeys }),
 
       setDpDifficultyFilter: (dpDifficultyFilter) => set({ dpDifficultyFilter }),
 
@@ -286,6 +309,16 @@ export const useFilterStore = create<FilterState>()(
 
       toggleCpiFilterExpanded: () =>
         set((state) => ({ cpiFilterExpanded: !state.cpiFilterExpanded })),
+
+      toggleFilterPanelExpanded: () =>
+        set((state) => ({ filterPanelExpanded: !state.filterPanelExpanded })),
+
+      setFilterPanelExpanded: (filterPanelExpanded) => set({ filterPanelExpanded }),
+
+      toggleShowHiddenFilters: () =>
+        set((state) => ({ showHiddenFilters: !state.showHiddenFilters })),
+
+      setShowHiddenFilters: (showHiddenFilters) => set({ showHiddenFilters }),
 
       resetFilters: () => set((state) => ({
         ...getInitialState(),
@@ -312,6 +345,7 @@ export const useFilterStore = create<FilterState>()(
               difficultyTableFilterExpanded: parsed.state.difficultyTableFilterExpanded ?? false,
               cpiFilters: parsed.state.cpiFilters ?? getInitialCpiFilters(),
               cpiFilterExpanded: parsed.state.cpiFilterExpanded ?? false,
+              showHiddenFilters: parsed.state.showHiddenFilters ?? false,
             },
           }
         },
@@ -336,6 +370,7 @@ export const useFilterStore = create<FilterState>()(
             difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
             cpiFilters: state.cpiFilters,
             cpiFilterExpanded: state.cpiFilterExpanded,
+            showHiddenFilters: state.showHiddenFilters,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -360,6 +395,7 @@ export const useFilterStore = create<FilterState>()(
         difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
         cpiFilters: state.cpiFilters,
         cpiFilterExpanded: state.cpiFilterExpanded,
+        showHiddenFilters: state.showHiddenFilters,
       }),
     }
   )

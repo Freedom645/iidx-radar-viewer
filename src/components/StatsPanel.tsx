@@ -71,17 +71,27 @@ export function StatsPanel({ data }: StatsPanelProps) {
   ]
 
   return (
-    <div className="mt-2">
+    <div className="bg-white border border-gray-200 rounded-lg">
+      {/* ヘッダー */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
       >
-        <span>{expanded ? '▼' : '▶'}</span>
         <span>統計情報</span>
+        <svg
+          className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
+
+      {/* パネル本体 */}
       {expanded && (
-        <div className="mt-2 bg-white border border-gray-200 rounded-lg p-4 overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="px-4 pb-4 border-t border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm mt-3">
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b">
                 <th className="pb-2 pr-4">項目</th>

@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings, StatsPanel } from '@/components'
 import { CPI_CLEAR_TYPES } from '@/types'
+import { useUrlSync } from '@/hooks'
 
 /** BPM文字列をパースして[min, max]を返す */
 function parseBpm(bpmStr: string): [number, number] {
@@ -17,6 +18,23 @@ function parseBpm(bpmStr: string): [number, number] {
 function App() {
   const { charts, loading, error, playMode, fetchCharts, setPlayMode } =
     useChartStore()
+  useUrlSync()
+
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerHeight, setHeaderHeight] = useState(0)
+
+  const updateHeaderHeight = useCallback(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight)
+    }
+  }, [])
+
+  useEffect(() => {
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [updateHeaderHeight])
+
   const {
     searchText,
     difficulties,
@@ -191,28 +209,24 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <header ref={headerRef} className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">
             IIDX Radar Viewer
           </h1>
+          <PlayModeTabs value={playMode} onChange={setPlayMode} />
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* プレイモードタブ */}
-        <div className="bg-white rounded-t-lg shadow-sm">
-          <PlayModeTabs value={playMode} onChange={setPlayMode} />
-        </div>
-
+      <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col" style={{ height: headerHeight ? `calc(100vh - ${headerHeight}px)` : '100vh' }}>
         {/* フィルタパネル */}
-        <div className="mt-4">
+        <div>
           <FilterPanel />
         </div>
 
         {/* ツールバー */}
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-3 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             検索結果: <span className="font-medium">{filteredCharts.length}</span> 件
           </div>
@@ -220,10 +234,12 @@ function App() {
         </div>
 
         {/* 統計情報 */}
-        <StatsPanel data={filteredCharts} />
+        <div className="mt-3">
+          <StatsPanel data={filteredCharts} />
+        </div>
 
         {/* テーブル */}
-        <div className="mt-4 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="mt-3 bg-white rounded-lg shadow-sm overflow-hidden flex-1 min-h-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-3 text-gray-500">
