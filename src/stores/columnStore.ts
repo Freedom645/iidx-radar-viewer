@@ -31,7 +31,7 @@ export interface ColumnConfig {
   playMode?: 'SP' | 'DP'
 }
 
-export type ColumnGroupId = 'basic' | 'radar' | 'difficultyTable'
+export type ColumnGroupId = 'basic' | 'radar' | 'difficultyTable' | 'cpi'
 
 export interface ColumnGroup {
   id: ColumnGroupId
@@ -42,7 +42,8 @@ export interface ColumnGroup {
 export const COLUMN_GROUPS: ColumnGroup[] = [
   { id: 'basic', label: '基本', columnIds: ['title', 'difficulty', 'level', 'bpm', 'noteCount'] },
   { id: 'radar', label: 'レーダー', columnIds: ['notes', 'peak', 'scratch', 'soflan', 'charge', 'chord'] },
-  { id: 'difficultyTable', label: '難易度表', columnIds: ['spNormal', 'spHard', 'dpDifficulty', 'cpiEasy', 'cpiNormal', 'cpiHard', 'cpiExh', 'cpiFc'] },
+  { id: 'difficultyTable', label: '難易度表', columnIds: ['spNormal', 'spHard', 'dpDifficulty'] },
+  { id: 'cpi', label: 'CPI', columnIds: ['cpiEasy', 'cpiNormal', 'cpiHard', 'cpiExh', 'cpiFc'] },
 ]
 
 export const COLUMN_CONFIGS: ColumnConfig[] = [

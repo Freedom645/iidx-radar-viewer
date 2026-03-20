@@ -69,6 +69,8 @@ interface FilterState {
   cpiFilterExpanded: boolean
   /** 非表示カラムのフィルタも表示するか */
   showHiddenFilters: boolean
+  /** フィルタパネルの展開状態 */
+  filterPanelExpanded: boolean
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -110,6 +112,10 @@ interface FilterState {
   setCpiFilter: (clearType: CpiClearType, filter: CpiRangeFilter) => void
   /** CPIフィルタ展開を切り替え */
   toggleCpiFilterExpanded: () => void
+  /** フィルタパネルの展開を切り替え */
+  toggleFilterPanelExpanded: () => void
+  /** フィルタパネルの展開状態を設定 */
+  setFilterPanelExpanded: (expanded: boolean) => void
   /** 非表示フィルタ表示を切り替え */
   toggleShowHiddenFilters: () => void
   /** 非表示フィルタ表示を設定 */
@@ -169,6 +175,7 @@ const getInitialState = () => ({
   cpiFilters: getInitialCpiFilters(),
   cpiFilterExpanded: false,
   showHiddenFilters: false,
+  filterPanelExpanded: true,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -192,6 +199,7 @@ interface PersistedFilterState {
   cpiFilters: Record<CpiClearType, CpiRangeFilter>
   cpiFilterExpanded: boolean
   showHiddenFilters: boolean
+  filterPanelExpanded: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -295,6 +303,11 @@ export const useFilterStore = create<FilterState>()(
       toggleCpiFilterExpanded: () =>
         set((state) => ({ cpiFilterExpanded: !state.cpiFilterExpanded })),
 
+      toggleFilterPanelExpanded: () =>
+        set((state) => ({ filterPanelExpanded: !state.filterPanelExpanded })),
+
+      setFilterPanelExpanded: (filterPanelExpanded) => set({ filterPanelExpanded }),
+
       toggleShowHiddenFilters: () =>
         set((state) => ({ showHiddenFilters: !state.showHiddenFilters })),
 
@@ -326,6 +339,7 @@ export const useFilterStore = create<FilterState>()(
               cpiFilters: parsed.state.cpiFilters ?? getInitialCpiFilters(),
               cpiFilterExpanded: parsed.state.cpiFilterExpanded ?? false,
               showHiddenFilters: parsed.state.showHiddenFilters ?? false,
+              filterPanelExpanded: parsed.state.filterPanelExpanded ?? true,
             },
           }
         },
@@ -351,6 +365,7 @@ export const useFilterStore = create<FilterState>()(
             cpiFilters: state.cpiFilters,
             cpiFilterExpanded: state.cpiFilterExpanded,
             showHiddenFilters: state.showHiddenFilters,
+            filterPanelExpanded: state.filterPanelExpanded,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -376,6 +391,7 @@ export const useFilterStore = create<FilterState>()(
         cpiFilters: state.cpiFilters,
         cpiFilterExpanded: state.cpiFilterExpanded,
         showHiddenFilters: state.showHiddenFilters,
+        filterPanelExpanded: state.filterPanelExpanded,
       }),
     }
   )
