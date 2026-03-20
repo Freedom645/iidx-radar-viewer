@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { ChartData, Difficulty, PlayMode } from '@/types'
-import { DIFFICULTY_SHORT } from '@/types'
+import { CPI_CLEAR_TYPES, CPI_CLEAR_TYPE_LABELS, DIFFICULTY_SHORT } from '@/types'
 import { useColumnStore, useSortStore, type ColumnId } from '@/stores'
 
 interface ChartTableProps {
@@ -146,6 +146,24 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
       }),
       ...(playMode === 'SP'
         ? [
+            ...CPI_CLEAR_TYPES.map((clearType) =>
+              columnHelper.accessor(
+                (row) => row.cpi?.[clearType] ?? undefined,
+                {
+                  id: `cpi${clearType.charAt(0).toUpperCase() + clearType.slice(1)}`,
+                  header: `CPI ${CPI_CLEAR_TYPE_LABELS[clearType]}`,
+                  cell: (info) => {
+                    const val = info.getValue()
+                    return val !== undefined ? val.toFixed(2) : ''
+                  },
+                  sortUndefined: 'last',
+                  sortingFn: numericWithTitleFallback,
+                  size: clearType === 'normal' ? 90 : 80,
+                  minSize: clearType === 'normal' ? 90 : 80,
+                  maxSize: clearType === 'normal' ? 90 : 80,
+                },
+              ),
+            ),
             columnHelper.accessor(
               (row) => {
                 const v = (row.sp12Rating ?? row.sp11Rating)?.normalValue

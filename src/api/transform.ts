@@ -1,6 +1,8 @@
 import type {
   ChartData,
   ChartInfoResponse,
+  CpiData,
+  CpiResponse,
   Difficulty,
   DpDifficultyRating,
   DpDifficultyTableSongsResponse,
@@ -15,6 +17,8 @@ import type {
   TitleResponse,
 } from "@/types";
 import {
+  CPI_CLEAR_TYPES,
+  cpiJsonKey,
   DIFFICULTIES,
   DIFFICULTY_INDEX,
   formatBpmForDifficulty,
@@ -34,6 +38,7 @@ interface RawData {
   sp11Songs: SpDifficultyTableSongsResponse;
   sp11Labels: SpDifficultyTableLabelsResponse;
   dpDifficultySongs: DpDifficultyTableSongsResponse;
+  cpiData: CpiResponse;
 }
 
 /** パック情報を解決 */
@@ -130,11 +135,49 @@ function resolveDpRating(
   return { value: rating.value };
 }
 
+/** CPI値を解決 */
+function resolveCpi(
+  songId: string,
+  difficulty: Difficulty,
+  level: number,
+  cpiData: CpiResponse,
+): CpiData | null {
+  // SP☆12のみが対象
+  if (level !== 12) return null;
+
+  const songEntry = cpiData[songId];
+  if (!songEntry) return null;
+
+  const tableKey = tableKeyFromDifficulty(difficulty);
+  if (!tableKey) return null;
+
+  const diffEntry = songEntry[tableKey];
+  if (!diffEntry) return null;
+
+  const result: CpiData = { easy: null, normal: null, hard: null, exh: null, fc: null };
+  let hasValue = false;
+
+  for (const clearType of CPI_CLEAR_TYPES) {
+    const jsonKey = cpiJsonKey(clearType);
+    const entry = diffEntry[jsonKey as keyof typeof diffEntry];
+    if (entry && typeof entry === "object" && "cpi_value" in entry) {
+      const value = entry.cpi_value;
+      // -2は未設定
+      if (value !== -2) {
+        result[clearType] = value;
+        hasValue = true;
+      }
+    }
+  }
+
+  return hasValue ? result : null;
+}
+
 /** 生データを譜面データに変換 */
 export function transformToChartData(rawData: RawData): ChartData[] {
   const {
     titles, spRadar, dpRadar, chartInfo, labels, songToLabel,
-    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs,
+    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs, cpiData,
   } = rawData;
   const charts: ChartData[] = [];
 
@@ -191,6 +234,9 @@ export function transformToChartData(rawData: RawData): ChartData[] {
             ? resolveSpRating(songId, difficulty, sp11Songs, sp11Labels)
             : null;
 
+        // CPI値の紐づけ（SP☆12のみ）
+        const cpi = resolveCpi(songId, difficulty, level, cpiData);
+
         charts.push({
           songId,
           title,
@@ -207,6 +253,7 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           sp12Rating,
           sp11Rating,
           dpRating: null,
+          cpi,
         });
       }
     }
@@ -244,6 +291,7 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           sp12Rating: null,
           sp11Rating: null,
           dpRating,
+          cpi: null,
         });
       }
     }

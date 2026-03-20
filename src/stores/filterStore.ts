@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Difficulty, LabelResponse, SpDifficultyTableLabelsResponse, VersionFilter } from '@/types'
+import type { CpiClearType, Difficulty, LabelResponse, SpDifficultyTableLabelsResponse, VersionFilter } from '@/types'
 
 interface RadarFilter {
   min: number
@@ -9,6 +9,12 @@ interface RadarFilter {
 
 /** DP難易度表範囲フィルター */
 export interface DpDifficultyFilter {
+  min: string
+  max: string
+}
+
+/** CPI範囲フィルター */
+export interface CpiRangeFilter {
   min: string
   max: string
 }
@@ -57,6 +63,10 @@ interface FilterState {
   spDifficultyLabels: SpDifficultyTableLabelsResponse | null
   /** 難易度表フィルタ展開状態 */
   difficultyTableFilterExpanded: boolean
+  /** CPIフィルタ（クリアタイプ別） */
+  cpiFilters: Record<CpiClearType, CpiRangeFilter>
+  /** CPIフィルタ展開状態 */
+  cpiFilterExpanded: boolean
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -94,6 +104,10 @@ interface FilterState {
   setSpDifficultyLabels: (sp12: SpDifficultyTableLabelsResponse, sp11: SpDifficultyTableLabelsResponse) => void
   /** 難易度表フィルタ展開を切り替え */
   toggleDifficultyTableFilterExpanded: () => void
+  /** CPIフィルタを設定 */
+  setCpiFilter: (clearType: CpiClearType, filter: CpiRangeFilter) => void
+  /** CPIフィルタ展開を切り替え */
+  toggleCpiFilterExpanded: () => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -117,6 +131,16 @@ const getInitialRadarFilters = () => ({
   chord: { ...initialRadarFilter },
 })
 
+const initialCpiFilter: CpiRangeFilter = { min: '', max: '' }
+
+const getInitialCpiFilters = (): Record<CpiClearType, CpiRangeFilter> => ({
+  easy: { ...initialCpiFilter },
+  normal: { ...initialCpiFilter },
+  hard: { ...initialCpiFilter },
+  exh: { ...initialCpiFilter },
+  fc: { ...initialCpiFilter },
+})
+
 const getInitialState = () => ({
   searchText: '',
   difficulties: getInitialDifficulties(),
@@ -136,6 +160,8 @@ const getInitialState = () => ({
   dpDifficultyFilter: { min: '', max: '' } as DpDifficultyFilter,
   spDifficultyLabels: null as SpDifficultyTableLabelsResponse | null,
   difficultyTableFilterExpanded: false,
+  cpiFilters: getInitialCpiFilters(),
+  cpiFilterExpanded: false,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -156,6 +182,8 @@ interface PersistedFilterState {
   selectedSpHardKeys: string[]
   dpDifficultyFilter: DpDifficultyFilter
   difficultyTableFilterExpanded: boolean
+  cpiFilters: Record<CpiClearType, CpiRangeFilter>
+  cpiFilterExpanded: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -248,6 +276,17 @@ export const useFilterStore = create<FilterState>()(
       toggleDifficultyTableFilterExpanded: () =>
         set((state) => ({ difficultyTableFilterExpanded: !state.difficultyTableFilterExpanded })),
 
+      setCpiFilter: (clearType, filter) =>
+        set((state) => ({
+          cpiFilters: {
+            ...state.cpiFilters,
+            [clearType]: filter,
+          },
+        })),
+
+      toggleCpiFilterExpanded: () =>
+        set((state) => ({ cpiFilterExpanded: !state.cpiFilterExpanded })),
+
       resetFilters: () => set((state) => ({
         ...getInitialState(),
         labels: state.labels,
@@ -271,6 +310,8 @@ export const useFilterStore = create<FilterState>()(
               selectedSpHardKeys: new Set(parsed.state.selectedSpHardKeys ?? []),
               dpDifficultyFilter: parsed.state.dpDifficultyFilter ?? { min: '', max: '' },
               difficultyTableFilterExpanded: parsed.state.difficultyTableFilterExpanded ?? false,
+              cpiFilters: parsed.state.cpiFilters ?? getInitialCpiFilters(),
+              cpiFilterExpanded: parsed.state.cpiFilterExpanded ?? false,
             },
           }
         },
@@ -293,6 +334,8 @@ export const useFilterStore = create<FilterState>()(
             selectedSpHardKeys: Array.from(state.selectedSpHardKeys),
             dpDifficultyFilter: state.dpDifficultyFilter,
             difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
+            cpiFilters: state.cpiFilters,
+            cpiFilterExpanded: state.cpiFilterExpanded,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -315,6 +358,8 @@ export const useFilterStore = create<FilterState>()(
         selectedSpHardKeys: state.selectedSpHardKeys,
         dpDifficultyFilter: state.dpDifficultyFilter,
         difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
+        cpiFilters: state.cpiFilters,
+        cpiFilterExpanded: state.cpiFilterExpanded,
       }),
     }
   )

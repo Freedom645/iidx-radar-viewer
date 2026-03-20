@@ -16,6 +16,11 @@ export type ColumnId =
   | 'spNormal'
   | 'spHard'
   | 'dpDifficulty'
+  | 'cpiEasy'
+  | 'cpiNormal'
+  | 'cpiHard'
+  | 'cpiExh'
+  | 'cpiFc'
 
 export interface ColumnConfig {
   id: ColumnId
@@ -41,6 +46,11 @@ export const COLUMN_CONFIGS: ColumnConfig[] = [
   { id: 'spNormal', label: 'ノーマル難易度', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
   { id: 'spHard', label: 'ハード難易度', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
   { id: 'dpDifficulty', label: 'DP難易度', defaultVisible: false, defaultVisibleMobile: false, playMode: 'DP' },
+  { id: 'cpiEasy', label: 'CPI EASY', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
+  { id: 'cpiNormal', label: 'CPI NORMAL', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
+  { id: 'cpiHard', label: 'CPI HARD', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
+  { id: 'cpiExh', label: 'CPI EXH', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
+  { id: 'cpiFc', label: 'CPI FC', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
 ]
 
 interface ColumnState {

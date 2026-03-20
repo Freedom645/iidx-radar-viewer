@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings } from '@/components'
+import { CPI_CLEAR_TYPES } from '@/types'
 
 /** BPM文字列をパースして[min, max]を返す */
 function parseBpm(bpmStr: string): [number, number] {
@@ -31,6 +32,7 @@ function App() {
     selectedSpNormalKeys,
     selectedSpHardKeys,
     dpDifficultyFilter,
+    cpiFilters,
   } = useFilterStore()
 
   useEffect(() => {
@@ -136,6 +138,18 @@ function App() {
         if (dpDifficultyFilter.max && chart.dpRating.value > Number(dpDifficultyFilter.max)) return false
       }
 
+      // CPIフィルタ（min/maxはstring型。"0"はtruthyでフィルタ発動、""はスキップ）
+      for (const clearType of CPI_CLEAR_TYPES) {
+        const filter = cpiFilters[clearType]
+        if (filter.min || filter.max) {
+          const cpiValue = chart.cpi?.[clearType]
+          // 未設定の譜面は検索条件指定時に除外
+          if (cpiValue == null) return false
+          if (filter.min && cpiValue < Number(filter.min)) return false
+          if (filter.max && cpiValue > Number(filter.max)) return false
+        }
+      }
+
       return true
     })
   }, [
@@ -155,6 +169,7 @@ function App() {
     selectedSpNormalKeys,
     selectedSpHardKeys,
     dpDifficultyFilter,
+    cpiFilters,
   ])
 
   if (error) {

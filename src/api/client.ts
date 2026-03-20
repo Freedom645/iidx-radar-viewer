@@ -8,6 +8,7 @@ import type {
   SpDifficultyTableSongsResponse,
   SpDifficultyTableLabelsResponse,
   DpDifficultyTableSongsResponse,
+  CpiResponse,
 } from '@/types'
 
 const BASE_URL = 'https://chinimuruhi.github.io/IIDX-Data-Table'
@@ -83,10 +84,17 @@ export async function fetchDpDifficultySongs(): Promise<DpDifficultyTableSongsRe
   return response.data
 }
 
+/** CPIデータを取得 */
+export async function fetchCpiData(): Promise<CpiResponse> {
+  const response = await client.get<CpiResponse>('/cpi/songs_dict.json')
+  return response.data
+}
+
 /** 難易度表データのデフォルト値（取得失敗時に使用） */
 const EMPTY_SP_DIFFICULTY_SONGS: SpDifficultyTableSongsResponse = {}
 const EMPTY_SP_DIFFICULTY_LABELS: SpDifficultyTableLabelsResponse = { hard: {}, normal: {} }
 const EMPTY_DP_DIFFICULTY_SONGS: DpDifficultyTableSongsResponse = {}
+const EMPTY_CPI_DATA: CpiResponse = {}
 
 /** すべてのデータを並列取得 */
 export async function fetchAllData() {
@@ -107,6 +115,7 @@ export async function fetchAllData() {
     fetchSp11DifficultySongs(),
     fetchSp11DifficultyLabels(),
     fetchDpDifficultySongs(),
+    fetchCpiData(),
   ])
 
   const sp12Songs = difficultyResults[0].status === 'fulfilled' ? difficultyResults[0].value : EMPTY_SP_DIFFICULTY_SONGS
@@ -114,9 +123,10 @@ export async function fetchAllData() {
   const sp11Songs = difficultyResults[2].status === 'fulfilled' ? difficultyResults[2].value : EMPTY_SP_DIFFICULTY_SONGS
   const sp11Labels = difficultyResults[3].status === 'fulfilled' ? difficultyResults[3].value : EMPTY_SP_DIFFICULTY_LABELS
   const dpDifficultySongs = difficultyResults[4].status === 'fulfilled' ? difficultyResults[4].value : EMPTY_DP_DIFFICULTY_SONGS
+  const cpiData = difficultyResults[5].status === 'fulfilled' ? difficultyResults[5].value : EMPTY_CPI_DATA
 
   return {
     titles, spRadar, dpRadar, chartInfo, labels, songToLabel,
-    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs,
+    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs, cpiData,
   }
 }

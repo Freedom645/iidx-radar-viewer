@@ -7,6 +7,7 @@ import { RadarFilter } from './RadarFilter'
 import { PackFilter } from './PackFilter'
 import { VersionFilter } from './VersionFilter'
 import { DifficultyTableFilter } from './DifficultyTableFilter'
+import { CpiFilter } from './CpiFilter'
 
 export function FilterPanel() {
   const { playMode } = useChartStore()
@@ -42,6 +43,10 @@ export function FilterPanel() {
     setDpDifficultyFilter,
     difficultyTableFilterExpanded,
     toggleDifficultyTableFilterExpanded,
+    cpiFilters,
+    setCpiFilter,
+    cpiFilterExpanded,
+    toggleCpiFilterExpanded,
     resetFilters,
   } = useFilterStore()
 
@@ -136,6 +141,16 @@ export function FilterPanel() {
         expanded={difficultyTableFilterExpanded}
         onToggleExpanded={toggleDifficultyTableFilterExpanded}
       />
+
+      {/* CPIフィルタ（SPモードのみ） */}
+      {playMode === 'SP' && (
+        <CpiFilter
+          filters={cpiFilters}
+          onChange={setCpiFilter}
+          expanded={cpiFilterExpanded}
+          onToggleExpanded={toggleCpiFilterExpanded}
+        />
+      )}
 
       {/* リセットボタン */}
       <div className="flex justify-end">
