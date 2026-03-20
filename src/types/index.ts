@@ -64,6 +64,21 @@ export const RADAR_TYPES: RadarType[] = [
   "CHORD",
 ];
 
+/** AC/INFINITAS収録状況フィルター */
+export type VersionFilter = "all" | "ac" | "inf";
+
+/** APIレスポンス: パック名一覧（インデックスがlabel ID） */
+export type LabelResponse = string[];
+
+/** APIレスポンス: 楽曲とパックの紐づけ */
+export type SongToLabelResponse = Record<
+  string,
+  {
+    in_leggendaria: boolean;
+    label: number;
+  }
+>;
+
 /** APIレスポンス: 楽曲名 */
 export type TitleResponse = Record<string, string>;
 
@@ -140,6 +155,14 @@ export interface ChartData {
   bpm: string;
   /** レーダ値 */
   radar: RadarData;
+  /** AC収録 */
+  inAc: boolean;
+  /** INFINITAS収録 */
+  inInf: boolean;
+  /** パックID（INFINITAS未収録の場合はnull） */
+  labelId: number | null;
+  /** パック名（INFINITAS未収録の場合はnull） */
+  labelName: string | null;
 }
 
 /** BPM値の型 */

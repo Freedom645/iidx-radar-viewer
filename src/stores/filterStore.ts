@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Difficulty } from '@/types'
+import type { Difficulty, LabelResponse, VersionFilter } from '@/types'
 
 interface RadarFilter {
   min: number
@@ -35,6 +35,12 @@ interface FilterState {
   }
   /** レーダフィルタ展開状態 */
   radarFilterExpanded: boolean
+  /** AC/INFINITAS収録状況フィルター */
+  versionFilter: VersionFilter
+  /** 選択中の楽曲パックID（空は「すべて」） */
+  selectedPackIds: Set<number>
+  /** パック名一覧（フィルター選択肢用） */
+  labels: LabelResponse
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -54,6 +60,14 @@ interface FilterState {
   ) => void
   /** レーダフィルタ展開を切り替え */
   toggleRadarFilterExpanded: () => void
+  /** 収録状況フィルターを設定 */
+  setVersionFilter: (version: VersionFilter) => void
+  /** 楽曲パックを切り替え */
+  togglePackId: (packId: number) => void
+  /** 楽曲パックを設定 */
+  setSelectedPackIds: (packIds: Set<number>) => void
+  /** パック名一覧を設定 */
+  setLabels: (labels: LabelResponse) => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -88,6 +102,9 @@ const getInitialState = () => ({
   noteCountMax: '',
   radarFilters: getInitialRadarFilters(),
   radarFilterExpanded: false,
+  versionFilter: 'all' as VersionFilter,
+  selectedPackIds: new Set<number>(),
+  labels: [] as LabelResponse,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -102,6 +119,8 @@ interface PersistedFilterState {
   noteCountMax: string
   radarFilters: FilterState['radarFilters']
   radarFilterExpanded: boolean
+  versionFilter: VersionFilter
+  selectedPackIds: number[]
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -142,7 +161,24 @@ export const useFilterStore = create<FilterState>()(
       toggleRadarFilterExpanded: () =>
         set((state) => ({ radarFilterExpanded: !state.radarFilterExpanded })),
 
-      resetFilters: () => set(getInitialState()),
+      setVersionFilter: (versionFilter) => set({ versionFilter }),
+
+      togglePackId: (packId) =>
+        set((state) => {
+          const newPackIds = new Set(state.selectedPackIds)
+          if (newPackIds.has(packId)) {
+            newPackIds.delete(packId)
+          } else {
+            newPackIds.add(packId)
+          }
+          return { selectedPackIds: newPackIds }
+        }),
+
+      setSelectedPackIds: (selectedPackIds) => set({ selectedPackIds }),
+
+      setLabels: (labels) => set({ labels }),
+
+      resetFilters: () => set((state) => ({ ...getInitialState(), labels: state.labels })),
     }),
     {
       name: 'iidx-radar-viewer-filters',
@@ -156,6 +192,7 @@ export const useFilterStore = create<FilterState>()(
             state: {
               ...parsed.state,
               difficulties: new Set(parsed.state.difficulties),
+              selectedPackIds: new Set(parsed.state.selectedPackIds ?? []),
             },
           }
         },
@@ -172,6 +209,8 @@ export const useFilterStore = create<FilterState>()(
             noteCountMax: state.noteCountMax,
             radarFilters: state.radarFilters,
             radarFilterExpanded: state.radarFilterExpanded,
+            versionFilter: state.versionFilter,
+            selectedPackIds: Array.from(state.selectedPackIds),
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -188,6 +227,8 @@ export const useFilterStore = create<FilterState>()(
         noteCountMax: state.noteCountMax,
         radarFilters: state.radarFilters,
         radarFilterExpanded: state.radarFilterExpanded,
+        versionFilter: state.versionFilter,
+        selectedPackIds: state.selectedPackIds,
       }),
     }
   )

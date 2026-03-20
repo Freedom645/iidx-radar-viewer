@@ -3,6 +3,8 @@ import type {
   TitleResponse,
   RadarResponse,
   ChartInfoResponse,
+  LabelResponse,
+  SongToLabelResponse,
 } from '@/types'
 
 const BASE_URL = 'https://chinimuruhi.github.io/IIDX-Data-Table'
@@ -36,13 +38,27 @@ export async function fetchChartInfo(): Promise<ChartInfoResponse> {
   return response.data
 }
 
+/** パック名一覧を取得 */
+export async function fetchLabels(): Promise<LabelResponse> {
+  const response = await client.get<LabelResponse>('/konami/label.json')
+  return response.data
+}
+
+/** 楽曲とパックの紐づけを取得 */
+export async function fetchSongToLabel(): Promise<SongToLabelResponse> {
+  const response = await client.get<SongToLabelResponse>('/konami/song_to_label.json')
+  return response.data
+}
+
 /** すべてのデータを並列取得 */
 export async function fetchAllData() {
-  const [titles, spRadar, dpRadar, chartInfo] = await Promise.all([
+  const [titles, spRadar, dpRadar, chartInfo, labels, songToLabel] = await Promise.all([
     fetchTitles(),
     fetchSpRadar(),
     fetchDpRadar(),
     fetchChartInfo(),
+    fetchLabels(),
+    fetchSongToLabel(),
   ])
-  return { titles, spRadar, dpRadar, chartInfo }
+  return { titles, spRadar, dpRadar, chartInfo, labels, songToLabel }
 }

@@ -26,6 +26,8 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    versionFilter,
+    selectedPackIds,
   } = useFilterStore()
 
   useEffect(() => {
@@ -43,6 +45,15 @@ function App() {
         !chart.title.toLowerCase().includes(searchText.toLowerCase())
       ) {
         return false
+      }
+
+      // 収録状況フィルタ
+      if (versionFilter === 'ac' && !chart.inAc) return false
+      if (versionFilter === 'inf' && !chart.inInf) return false
+
+      // 楽曲パックフィルタ
+      if (selectedPackIds.size > 0) {
+        if (chart.labelId === null || !selectedPackIds.has(chart.labelId)) return false
       }
 
       // 難易度フィルタ
@@ -115,6 +126,8 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    versionFilter,
+    selectedPackIds,
   ])
 
   if (error) {

@@ -1,9 +1,11 @@
 import type {
   ChartData,
   ChartInfoResponse,
+  LabelResponse,
   PlayMode,
   RadarData,
   RadarResponse,
+  SongToLabelResponse,
   TitleResponse,
 } from "@/types";
 import {
@@ -18,6 +20,22 @@ interface RawData {
   spRadar: RadarResponse;
   dpRadar: RadarResponse;
   chartInfo: ChartInfoResponse;
+  labels: LabelResponse;
+  songToLabel: SongToLabelResponse;
+}
+
+/** パック情報を解決 */
+function resolveLabel(
+  songLabel: SongToLabelResponse[string] | undefined,
+  difficulty: string,
+  labels: LabelResponse,
+): { labelId: number | null; labelName: string | null } {
+  const isInPack =
+    songLabel != null &&
+    (difficulty !== "LEGGENDARIA" || songLabel.in_leggendaria);
+  const labelId = isInPack ? songLabel.label : null;
+  const labelName = labelId != null ? (labels[labelId] ?? null) : null;
+  return { labelId, labelName };
 }
 
 /** レーダ値を抽出 */
@@ -51,7 +69,7 @@ function extractRadar(
 
 /** 生データを譜面データに変換 */
 export function transformToChartData(rawData: RawData): ChartData[] {
-  const { titles, spRadar, dpRadar, chartInfo } = rawData;
+  const { titles, spRadar, dpRadar, chartInfo, labels, songToLabel } = rawData;
   const charts: ChartData[] = [];
 
   // すべての楽曲IDを収集
@@ -67,6 +85,7 @@ export function transformToChartData(rawData: RawData): ChartData[] {
     const info = chartInfo[songId];
     const spRadarData = spRadar[songId];
     const dpRadarData = dpRadar[songId];
+    const songLabel = songToLabel[songId];
 
     // SP譜面を処理
     for (const difficulty of DIFFICULTIES) {
@@ -94,6 +113,8 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           });
         }
 
+        const { labelId, labelName } = resolveLabel(songLabel, difficulty, labels);
+
         charts.push({
           songId,
           title,
@@ -103,6 +124,10 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           noteCount,
           bpm,
           radar,
+          inAc: info?.in_ac ?? false,
+          inInf: info?.in_inf ?? false,
+          labelId,
+          labelName,
         });
       }
     }
@@ -119,6 +144,8 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           ? formatBpmForDifficulty(info.bpm, "DP", diffIndex)
           : "-";
 
+        const { labelId, labelName } = resolveLabel(songLabel, difficulty, labels);
+
         charts.push({
           songId,
           title,
@@ -128,6 +155,10 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           noteCount,
           bpm,
           radar,
+          inAc: info?.in_ac ?? false,
+          inInf: info?.in_inf ?? false,
+          labelId,
+          labelName,
         });
       }
     }
