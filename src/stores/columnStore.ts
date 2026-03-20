@@ -13,12 +13,17 @@ export type ColumnId =
   | 'soflan'
   | 'charge'
   | 'chord'
+  | 'spNormal'
+  | 'spHard'
+  | 'dpDifficulty'
 
 export interface ColumnConfig {
   id: ColumnId
   label: string
   defaultVisible: boolean
   defaultVisibleMobile: boolean
+  /** このカラムを表示するプレイモード（未指定は両方） */
+  playMode?: 'SP' | 'DP'
 }
 
 export const COLUMN_CONFIGS: ColumnConfig[] = [
@@ -33,6 +38,9 @@ export const COLUMN_CONFIGS: ColumnConfig[] = [
   { id: 'soflan', label: 'SOF-LAN', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'charge', label: 'CHARGE', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'chord', label: 'CHORD', defaultVisible: true, defaultVisibleMobile: true },
+  { id: 'spNormal', label: 'ノーマル難易度', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
+  { id: 'spHard', label: 'ハード難易度', defaultVisible: false, defaultVisibleMobile: false, playMode: 'SP' },
+  { id: 'dpDifficulty', label: 'DP難易度', defaultVisible: false, defaultVisibleMobile: false, playMode: 'DP' },
 ]
 
 interface ColumnState {

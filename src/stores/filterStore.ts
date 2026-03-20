@@ -1,10 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Difficulty, LabelResponse, VersionFilter } from '@/types'
+import type { Difficulty, LabelResponse, SpDifficultyTableLabelsResponse, VersionFilter } from '@/types'
 
 interface RadarFilter {
   min: number
   max: number
+}
+
+/** DP難易度表範囲フィルター */
+export interface DpDifficultyFilter {
+  min: string
+  max: string
 }
 
 interface FilterState {
@@ -41,6 +47,16 @@ interface FilterState {
   selectedPackIds: Set<number>
   /** パック名一覧（フィルター選択肢用） */
   labels: LabelResponse
+  /** 選択中のSPノーマル難易度キー（空は「すべて」） */
+  selectedSpNormalKeys: Set<string>
+  /** 選択中のSPハード難易度キー（空は「すべて」） */
+  selectedSpHardKeys: Set<string>
+  /** DP難易度表フィルター */
+  dpDifficultyFilter: DpDifficultyFilter
+  /** SP難易度表ラベル定義（☆12/☆11共通） */
+  spDifficultyLabels: SpDifficultyTableLabelsResponse | null
+  /** 難易度表フィルタ展開状態 */
+  difficultyTableFilterExpanded: boolean
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -68,6 +84,16 @@ interface FilterState {
   setSelectedPackIds: (packIds: Set<number>) => void
   /** パック名一覧を設定 */
   setLabels: (labels: LabelResponse) => void
+  /** SPノーマル難易度キーを切り替え */
+  toggleSpNormalKey: (key: string) => void
+  /** SPハード難易度キーを切り替え */
+  toggleSpHardKey: (key: string) => void
+  /** DP難易度表フィルターを設定 */
+  setDpDifficultyFilter: (filter: DpDifficultyFilter) => void
+  /** SP難易度表ラベル定義を設定（☆12/☆11をマージ） */
+  setSpDifficultyLabels: (sp12: SpDifficultyTableLabelsResponse, sp11: SpDifficultyTableLabelsResponse) => void
+  /** 難易度表フィルタ展開を切り替え */
+  toggleDifficultyTableFilterExpanded: () => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -105,6 +131,11 @@ const getInitialState = () => ({
   versionFilter: 'all' as VersionFilter,
   selectedPackIds: new Set<number>(),
   labels: [] as LabelResponse,
+  selectedSpNormalKeys: new Set<string>(),
+  selectedSpHardKeys: new Set<string>(),
+  dpDifficultyFilter: { min: '', max: '' } as DpDifficultyFilter,
+  spDifficultyLabels: null as SpDifficultyTableLabelsResponse | null,
+  difficultyTableFilterExpanded: false,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -121,6 +152,10 @@ interface PersistedFilterState {
   radarFilterExpanded: boolean
   versionFilter: VersionFilter
   selectedPackIds: number[]
+  selectedSpNormalKeys: string[]
+  selectedSpHardKeys: string[]
+  dpDifficultyFilter: DpDifficultyFilter
+  difficultyTableFilterExpanded: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -178,7 +213,46 @@ export const useFilterStore = create<FilterState>()(
 
       setLabels: (labels) => set({ labels }),
 
-      resetFilters: () => set((state) => ({ ...getInitialState(), labels: state.labels })),
+      toggleSpNormalKey: (key) =>
+        set((state) => {
+          const newKeys = new Set(state.selectedSpNormalKeys)
+          if (newKeys.has(key)) {
+            newKeys.delete(key)
+          } else {
+            newKeys.add(key)
+          }
+          return { selectedSpNormalKeys: newKeys }
+        }),
+
+      toggleSpHardKey: (key) =>
+        set((state) => {
+          const newKeys = new Set(state.selectedSpHardKeys)
+          if (newKeys.has(key)) {
+            newKeys.delete(key)
+          } else {
+            newKeys.add(key)
+          }
+          return { selectedSpHardKeys: newKeys }
+        }),
+
+      setDpDifficultyFilter: (dpDifficultyFilter) => set({ dpDifficultyFilter }),
+
+      setSpDifficultyLabels: (sp12, sp11) => set({
+        // ☆12と☆11のラベルをマージ（同一キーは☆12を優先）
+        spDifficultyLabels: {
+          normal: { ...sp11.normal, ...sp12.normal },
+          hard: { ...sp11.hard, ...sp12.hard },
+        },
+      }),
+
+      toggleDifficultyTableFilterExpanded: () =>
+        set((state) => ({ difficultyTableFilterExpanded: !state.difficultyTableFilterExpanded })),
+
+      resetFilters: () => set((state) => ({
+        ...getInitialState(),
+        labels: state.labels,
+        spDifficultyLabels: state.spDifficultyLabels,
+      })),
     }),
     {
       name: 'iidx-radar-viewer-filters',
@@ -193,6 +267,10 @@ export const useFilterStore = create<FilterState>()(
               ...parsed.state,
               difficulties: new Set(parsed.state.difficulties),
               selectedPackIds: new Set(parsed.state.selectedPackIds ?? []),
+              selectedSpNormalKeys: new Set(parsed.state.selectedSpNormalKeys ?? []),
+              selectedSpHardKeys: new Set(parsed.state.selectedSpHardKeys ?? []),
+              dpDifficultyFilter: parsed.state.dpDifficultyFilter ?? { min: '', max: '' },
+              difficultyTableFilterExpanded: parsed.state.difficultyTableFilterExpanded ?? false,
             },
           }
         },
@@ -211,6 +289,10 @@ export const useFilterStore = create<FilterState>()(
             radarFilterExpanded: state.radarFilterExpanded,
             versionFilter: state.versionFilter,
             selectedPackIds: Array.from(state.selectedPackIds),
+            selectedSpNormalKeys: Array.from(state.selectedSpNormalKeys),
+            selectedSpHardKeys: Array.from(state.selectedSpHardKeys),
+            dpDifficultyFilter: state.dpDifficultyFilter,
+            difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -229,6 +311,10 @@ export const useFilterStore = create<FilterState>()(
         radarFilterExpanded: state.radarFilterExpanded,
         versionFilter: state.versionFilter,
         selectedPackIds: state.selectedPackIds,
+        selectedSpNormalKeys: state.selectedSpNormalKeys,
+        selectedSpHardKeys: state.selectedSpHardKeys,
+        dpDifficultyFilter: state.dpDifficultyFilter,
+        difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
       }),
     }
   )

@@ -1,4 +1,4 @@
-import { useFilterStore } from '@/stores'
+import { useChartStore, useFilterStore } from '@/stores'
 import { SearchInput } from './SearchInput'
 import { DifficultyFilter } from './DifficultyFilter'
 import { LevelFilter } from './LevelFilter'
@@ -6,8 +6,10 @@ import { NumberRangeFilter } from './NumberRangeFilter'
 import { RadarFilter } from './RadarFilter'
 import { PackFilter } from './PackFilter'
 import { VersionFilter } from './VersionFilter'
+import { DifficultyTableFilter } from './DifficultyTableFilter'
 
 export function FilterPanel() {
+  const { playMode } = useChartStore()
   const {
     searchText,
     setSearchText,
@@ -31,6 +33,15 @@ export function FilterPanel() {
     selectedPackIds,
     togglePackId,
     labels,
+    selectedSpNormalKeys,
+    selectedSpHardKeys,
+    dpDifficultyFilter,
+    spDifficultyLabels,
+    toggleSpNormalKey,
+    toggleSpHardKey,
+    setDpDifficultyFilter,
+    difficultyTableFilterExpanded,
+    toggleDifficultyTableFilterExpanded,
     resetFilters,
   } = useFilterStore()
 
@@ -110,6 +121,20 @@ export function FilterPanel() {
         onChange={setRadarFilter}
         expanded={radarFilterExpanded}
         onToggleExpanded={toggleRadarFilterExpanded}
+      />
+
+      {/* 難易度表フィルタ */}
+      <DifficultyTableFilter
+        playMode={playMode}
+        selectedSpNormalKeys={selectedSpNormalKeys}
+        selectedSpHardKeys={selectedSpHardKeys}
+        dpFilter={dpDifficultyFilter}
+        spLabels={spDifficultyLabels}
+        onToggleSpNormal={toggleSpNormalKey}
+        onToggleSpHard={toggleSpHardKey}
+        onDpChange={setDpDifficultyFilter}
+        expanded={difficultyTableFilterExpanded}
+        onToggleExpanded={toggleDifficultyTableFilterExpanded}
       />
 
       {/* リセットボタン */}

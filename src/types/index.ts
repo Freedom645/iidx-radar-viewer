@@ -67,6 +67,56 @@ export const RADAR_TYPES: RadarType[] = [
 /** AC/INFINITAS収録状況フィルター */
 export type VersionFilter = "all" | "ac" | "inf";
 
+/** Difficultyから難易度表キー(A/H/L)への変換マップ */
+const DIFFICULTY_TO_TABLE_KEY: Partial<Record<Difficulty, string>> = {
+  ANOTHER: "A",
+  HYPER: "H",
+  LEGGENDARIA: "L",
+};
+
+/** Difficultyを難易度表キー(A/H/L)に変換。対象外の場合はundefined */
+export function tableKeyFromDifficulty(
+  difficulty: Difficulty,
+): string | undefined {
+  return DIFFICULTY_TO_TABLE_KEY[difficulty];
+}
+
+/** APIレスポンス: SP難易度表の譜面データ */
+export type SpDifficultyTableSongsResponse = Record<
+  string,
+  Record<string, { n_value: number; h_value: number }>
+>;
+
+/** APIレスポンス: SP難易度表のラベル定義 */
+export type SpDifficultyTableLabelsResponse = {
+  hard: Record<string, string>;
+  normal: Record<string, string>;
+};
+
+/** APIレスポンス: DP難易度表の譜面データ */
+export type DpDifficultyTableSongsResponse = Record<
+  string,
+  Record<string, { value: number; snj_id: string }>
+>;
+
+/** SP難易度表の難易度情報 */
+export interface SpDifficultyRating {
+  /** ノーマル難易度値（キー値） */
+  normalValue: number;
+  /** ノーマル難易度ラベル */
+  normalLabel: string;
+  /** ハード難易度値（キー値） */
+  hardValue: number;
+  /** ハード難易度ラベル */
+  hardLabel: string;
+}
+
+/** DP難易度表の難易度情報 */
+export interface DpDifficultyRating {
+  /** 難易度値 */
+  value: number;
+}
+
 /** APIレスポンス: パック名一覧（インデックスがlabel ID） */
 export type LabelResponse = string[];
 
@@ -163,6 +213,12 @@ export interface ChartData {
   labelId: number | null;
   /** パック名（INFINITAS未収録の場合はnull） */
   labelName: string | null;
+  /** SP☆12難易度表 */
+  sp12Rating: SpDifficultyRating | null;
+  /** SP☆11難易度表 */
+  sp11Rating: SpDifficultyRating | null;
+  /** DP難易度表 */
+  dpRating: DpDifficultyRating | null;
 }
 
 /** BPM値の型 */

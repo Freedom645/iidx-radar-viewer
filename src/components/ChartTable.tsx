@@ -28,6 +28,14 @@ const ROW_HEIGHT = 41
 
 const columnHelper = createColumnHelper<ChartData>()
 
+/** 数値カラム用ソート関数（同値は楽曲名順） */
+const numericWithTitleFallback: typeof import('@tanstack/react-table').sortingFns.basic = (rowA, rowB, columnId) => {
+  const a = rowA.getValue<number>(columnId)
+  const b = rowB.getValue<number>(columnId)
+  if (a !== b) return a - b
+  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
+}
+
 export function ChartTable({ data, playMode }: ChartTableProps) {
   const { sorting, setSorting } = useSortStore()
   const { visibleColumns } = useColumnStore()
@@ -136,6 +144,65 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
         minSize: 70,
         maxSize: 70,
       }),
+      ...(playMode === 'SP'
+        ? [
+            columnHelper.accessor(
+              (row) => {
+                const v = (row.sp12Rating ?? row.sp11Rating)?.normalValue
+                return v != null && v >= 0 ? v : undefined
+              },
+              {
+                id: 'spNormal',
+                header: 'ノーマル難易度',
+                cell: (info) => {
+                  const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
+                  return rating?.normalLabel ?? ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 100,
+                minSize: 100,
+                maxSize: 100,
+              },
+            ),
+            columnHelper.accessor(
+              (row) => {
+                const v = (row.sp12Rating ?? row.sp11Rating)?.hardValue
+                return v != null && v >= 0 ? v : undefined
+              },
+              {
+                id: 'spHard',
+                header: 'ハード難易度',
+                cell: (info) => {
+                  const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
+                  return rating?.hardLabel ?? ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 100,
+                minSize: 100,
+                maxSize: 100,
+              },
+            ),
+          ]
+        : [
+            columnHelper.accessor(
+              (row) => row.dpRating?.value ?? undefined,
+              {
+                id: 'dpDifficulty',
+                header: 'DP難易度',
+                cell: (info) => {
+                  const val = info.getValue()
+                  return val !== undefined ? val.toFixed(1) : ''
+                },
+                sortUndefined: 'last',
+                sortingFn: numericWithTitleFallback,
+                size: 80,
+                minSize: 80,
+                maxSize: 80,
+              },
+            ),
+          ]),
     ],
     [playMode]
   )

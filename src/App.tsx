@@ -28,6 +28,9 @@ function App() {
     radarFilters,
     versionFilter,
     selectedPackIds,
+    selectedSpNormalKeys,
+    selectedSpHardKeys,
+    dpDifficultyFilter,
   } = useFilterStore()
 
   useEffect(() => {
@@ -112,6 +115,27 @@ function App() {
       )
         return false
 
+      // SPノーマル難易度フィルタ（☆12/☆11共通、マルチチェックボックス）
+      if (selectedSpNormalKeys.size > 0) {
+        const rating = chart.sp12Rating ?? chart.sp11Rating
+        if (!rating || rating.normalValue < 0) return false
+        if (!selectedSpNormalKeys.has(String(rating.normalValue))) return false
+      }
+
+      // SPハード難易度フィルタ（☆12/☆11共通、マルチチェックボックス）
+      if (selectedSpHardKeys.size > 0) {
+        const rating = chart.sp12Rating ?? chart.sp11Rating
+        if (!rating || rating.hardValue < 0) return false
+        if (!selectedSpHardKeys.has(String(rating.hardValue))) return false
+      }
+
+      // DP難易度表フィルタ（min/maxはstring型。"0"はtruthyでフィルタ発動、""はスキップ）
+      if (dpDifficultyFilter.min || dpDifficultyFilter.max) {
+        if (!chart.dpRating) return false
+        if (dpDifficultyFilter.min && chart.dpRating.value < Number(dpDifficultyFilter.min)) return false
+        if (dpDifficultyFilter.max && chart.dpRating.value > Number(dpDifficultyFilter.max)) return false
+      }
+
       return true
     })
   }, [
@@ -128,6 +152,9 @@ function App() {
     radarFilters,
     versionFilter,
     selectedPackIds,
+    selectedSpNormalKeys,
+    selectedSpHardKeys,
+    dpDifficultyFilter,
   ])
 
   if (error) {

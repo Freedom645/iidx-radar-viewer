@@ -1,9 +1,15 @@
-import { useState, useRef, useEffect } from 'react'
-import { useColumnStore, COLUMN_CONFIGS } from '@/stores'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { useChartStore, useColumnStore, COLUMN_CONFIGS } from '@/stores'
 
 export function ColumnSettings() {
   const [isOpen, setIsOpen] = useState(false)
   const { visibleColumns, toggleColumn } = useColumnStore()
+  const { playMode } = useChartStore()
+
+  const filteredConfigs = useMemo(
+    () => COLUMN_CONFIGS.filter((c) => !c.playMode || c.playMode === playMode),
+    [playMode]
+  )
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -54,7 +60,7 @@ export function ColumnSettings() {
             <div className="text-xs text-gray-500 font-medium mb-2 px-2">
               表示するカラム
             </div>
-            {COLUMN_CONFIGS.map((config) => (
+            {filteredConfigs.map((config) => (
               <label
                 key={config.id}
                 className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"

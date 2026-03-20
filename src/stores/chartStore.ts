@@ -33,6 +33,7 @@ export const useChartStore = create<ChartState>()(
           const rawData = await fetchAllData()
           const charts = transformToChartData(rawData)
           useFilterStore.getState().setLabels(rawData.labels)
+          useFilterStore.getState().setSpDifficultyLabels(rawData.sp12Labels, rawData.sp11Labels)
           set({ charts, loading: false })
         } catch (error) {
           const message = error instanceof Error ? error.message : 'データの取得に失敗しました'
