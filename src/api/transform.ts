@@ -115,6 +115,8 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           noteCount,
           bpm,
           radar,
+          inAc: info?.in_ac ?? false,
+          inInf: info?.in_inf ?? false,
           labelId,
           labelName,
         });
@@ -148,6 +150,8 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           noteCount,
           bpm,
           radar,
+          inAc: info?.in_ac ?? false,
+          inInf: info?.in_inf ?? false,
           labelId,
           labelName,
         });

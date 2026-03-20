@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Difficulty } from '@/types'
+import type { Difficulty, VersionFilter } from '@/types'
 
 interface RadarFilter {
   min: number
@@ -35,6 +35,8 @@ interface FilterState {
   }
   /** レーダフィルタ展開状態 */
   radarFilterExpanded: boolean
+  /** AC/INFINITAS収録状況フィルター */
+  versionFilter: VersionFilter
   /** 選択中の楽曲パックID（空は「すべて」） */
   selectedPackIds: Set<number>
   /** 検索テキストを設定 */
@@ -56,6 +58,8 @@ interface FilterState {
   ) => void
   /** レーダフィルタ展開を切り替え */
   toggleRadarFilterExpanded: () => void
+  /** 収録状況フィルターを設定 */
+  setVersionFilter: (version: VersionFilter) => void
   /** 楽曲パックを切り替え */
   togglePackId: (packId: number) => void
   /** 楽曲パックを設定 */
@@ -94,6 +98,7 @@ const getInitialState = () => ({
   noteCountMax: '',
   radarFilters: getInitialRadarFilters(),
   radarFilterExpanded: false,
+  versionFilter: 'all' as VersionFilter,
   selectedPackIds: new Set<number>(),
 })
 
@@ -109,6 +114,7 @@ interface PersistedFilterState {
   noteCountMax: string
   radarFilters: FilterState['radarFilters']
   radarFilterExpanded: boolean
+  versionFilter: VersionFilter
   selectedPackIds: number[]
 }
 
@@ -149,6 +155,8 @@ export const useFilterStore = create<FilterState>()(
 
       toggleRadarFilterExpanded: () =>
         set((state) => ({ radarFilterExpanded: !state.radarFilterExpanded })),
+
+      setVersionFilter: (versionFilter) => set({ versionFilter }),
 
       togglePackId: (packId) =>
         set((state) => {
@@ -194,6 +202,7 @@ export const useFilterStore = create<FilterState>()(
             noteCountMax: state.noteCountMax,
             radarFilters: state.radarFilters,
             radarFilterExpanded: state.radarFilterExpanded,
+            versionFilter: state.versionFilter,
             selectedPackIds: Array.from(state.selectedPackIds),
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
@@ -211,6 +220,7 @@ export const useFilterStore = create<FilterState>()(
         noteCountMax: state.noteCountMax,
         radarFilters: state.radarFilters,
         radarFilterExpanded: state.radarFilterExpanded,
+        versionFilter: state.versionFilter,
         selectedPackIds: state.selectedPackIds,
       }),
     }

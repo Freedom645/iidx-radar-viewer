@@ -26,6 +26,7 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    versionFilter,
     selectedPackIds,
   } = useFilterStore()
 
@@ -45,6 +46,10 @@ function App() {
       ) {
         return false
       }
+
+      // 収録状況フィルタ
+      if (versionFilter === 'ac' && !chart.inAc) return false
+      if (versionFilter === 'inf' && !chart.inInf) return false
 
       // 楽曲パックフィルタ
       if (selectedPackIds.size > 0) {
@@ -121,6 +126,7 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    versionFilter,
     selectedPackIds,
   ])
 

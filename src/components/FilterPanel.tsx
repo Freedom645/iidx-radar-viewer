@@ -5,6 +5,7 @@ import { LevelFilter } from './LevelFilter'
 import { NumberRangeFilter } from './NumberRangeFilter'
 import { RadarFilter } from './RadarFilter'
 import { PackFilter } from './PackFilter'
+import { VersionFilter } from './VersionFilter'
 
 export function FilterPanel() {
   const {
@@ -25,6 +26,8 @@ export function FilterPanel() {
     setRadarFilter,
     radarFilterExpanded,
     toggleRadarFilterExpanded,
+    versionFilter,
+    setVersionFilter,
     selectedPackIds,
     togglePackId,
     resetFilters,
@@ -78,6 +81,15 @@ export function FilterPanel() {
             onChange={setNoteCountRange}
             inputMin={1}
             inputMax={9999}
+          />
+        </div>
+
+        {/* 収録状況フィルタ */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">収録状況</label>
+          <VersionFilter
+            value={versionFilter}
+            onChange={setVersionFilter}
           />
         </div>
 
