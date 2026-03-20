@@ -19,6 +19,7 @@ import {
   DIFFICULTY_INDEX,
   formatBpmForDifficulty,
   isBpmPerDifficulty,
+  tableKeyFromDifficulty,
 } from "@/types";
 
 interface RawData {
@@ -88,10 +89,7 @@ function resolveSpRating(
   const songEntry = songs[songId];
   if (!songEntry) return null;
 
-  // Difficultyから難易度表キーを逆引き
-  const tableKey = Object.entries(
-    { A: "ANOTHER", H: "HYPER", L: "LEGGENDARIA" } as Record<string, string>,
-  ).find(([, d]) => d === difficulty)?.[0];
+  const tableKey = tableKeyFromDifficulty(difficulty);
   if (!tableKey) return null;
 
   const rating = songEntry[tableKey];
@@ -123,9 +121,7 @@ function resolveDpRating(
   const songEntry = songs[songId];
   if (!songEntry) return null;
 
-  const tableKey = Object.entries(
-    { A: "ANOTHER", H: "HYPER", L: "LEGGENDARIA" } as Record<string, string>,
-  ).find(([, d]) => d === difficulty)?.[0];
+  const tableKey = tableKeyFromDifficulty(difficulty);
   if (!tableKey) return null;
 
   const rating = songEntry[tableKey];

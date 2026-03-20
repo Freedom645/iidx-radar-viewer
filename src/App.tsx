@@ -129,7 +129,7 @@ function App() {
         if (!selectedSpHardKeys.has(String(rating.hardValue))) return false
       }
 
-      // DP難易度表フィルタ
+      // DP難易度表フィルタ（min/maxはstring型。"0"はtruthyでフィルタ発動、""はスキップ）
       if (dpDifficultyFilter.min || dpDifficultyFilter.max) {
         if (!chart.dpRating) return false
         if (dpDifficultyFilter.min && chart.dpRating.value < Number(dpDifficultyFilter.min)) return false

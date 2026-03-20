@@ -28,6 +28,14 @@ const ROW_HEIGHT = 41
 
 const columnHelper = createColumnHelper<ChartData>()
 
+/** 数値カラム用ソート関数（同値は楽曲名順） */
+const numericWithTitleFallback: typeof import('@tanstack/react-table').sortingFns.basic = (rowA, rowB, columnId) => {
+  const a = rowA.getValue<number>(columnId)
+  const b = rowB.getValue<number>(columnId)
+  if (a !== b) return a - b
+  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
+}
+
 export function ChartTable({ data, playMode }: ChartTableProps) {
   const { sorting, setSorting } = useSortStore()
   const { visibleColumns } = useColumnStore()
@@ -151,12 +159,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                   return rating?.normalLabel ?? ''
                 },
                 sortUndefined: 'last',
-                sortingFn: (rowA, rowB, columnId) => {
-                  const a = rowA.getValue<number>(columnId)
-                  const b = rowB.getValue<number>(columnId)
-                  if (a !== b) return a - b
-                  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
-                },
+                sortingFn: numericWithTitleFallback,
                 size: 100,
                 minSize: 100,
                 maxSize: 100,
@@ -175,12 +178,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                   return rating?.hardLabel ?? ''
                 },
                 sortUndefined: 'last',
-                sortingFn: (rowA, rowB, columnId) => {
-                  const a = rowA.getValue<number>(columnId)
-                  const b = rowB.getValue<number>(columnId)
-                  if (a !== b) return a - b
-                  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
-                },
+                sortingFn: numericWithTitleFallback,
                 size: 100,
                 minSize: 100,
                 maxSize: 100,
@@ -198,12 +196,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
                   return val !== undefined ? val.toFixed(1) : ''
                 },
                 sortUndefined: 'last',
-                sortingFn: (rowA, rowB, columnId) => {
-                  const a = rowA.getValue<number>(columnId)
-                  const b = rowB.getValue<number>(columnId)
-                  if (a !== b) return a - b
-                  return rowA.original.title.localeCompare(rowB.original.title, 'ja')
-                },
+                sortingFn: numericWithTitleFallback,
                 size: 80,
                 minSize: 80,
                 maxSize: 80,

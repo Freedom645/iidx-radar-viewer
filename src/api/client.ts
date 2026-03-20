@@ -83,24 +83,38 @@ export async function fetchDpDifficultySongs(): Promise<DpDifficultyTableSongsRe
   return response.data
 }
 
+/** 難易度表データのデフォルト値（取得失敗時に使用） */
+const EMPTY_SP_DIFFICULTY_SONGS: SpDifficultyTableSongsResponse = {}
+const EMPTY_SP_DIFFICULTY_LABELS: SpDifficultyTableLabelsResponse = { hard: {}, normal: {} }
+const EMPTY_DP_DIFFICULTY_SONGS: DpDifficultyTableSongsResponse = {}
+
 /** すべてのデータを並列取得 */
 export async function fetchAllData() {
-  const [
-    titles, spRadar, dpRadar, chartInfo, labels, songToLabel,
-    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs,
-  ] = await Promise.all([
+  // 必須データ
+  const [titles, spRadar, dpRadar, chartInfo, labels, songToLabel] = await Promise.all([
     fetchTitles(),
     fetchSpRadar(),
     fetchDpRadar(),
     fetchChartInfo(),
     fetchLabels(),
     fetchSongToLabel(),
+  ])
+
+  // 難易度表データ（非必須: 失敗しても空データとして扱う）
+  const difficultyResults = await Promise.allSettled([
     fetchSp12DifficultySongs(),
     fetchSp12DifficultyLabels(),
     fetchSp11DifficultySongs(),
     fetchSp11DifficultyLabels(),
     fetchDpDifficultySongs(),
   ])
+
+  const sp12Songs = difficultyResults[0].status === 'fulfilled' ? difficultyResults[0].value : EMPTY_SP_DIFFICULTY_SONGS
+  const sp12Labels = difficultyResults[1].status === 'fulfilled' ? difficultyResults[1].value : EMPTY_SP_DIFFICULTY_LABELS
+  const sp11Songs = difficultyResults[2].status === 'fulfilled' ? difficultyResults[2].value : EMPTY_SP_DIFFICULTY_SONGS
+  const sp11Labels = difficultyResults[3].status === 'fulfilled' ? difficultyResults[3].value : EMPTY_SP_DIFFICULTY_LABELS
+  const dpDifficultySongs = difficultyResults[4].status === 'fulfilled' ? difficultyResults[4].value : EMPTY_DP_DIFFICULTY_SONGS
+
   return {
     titles, spRadar, dpRadar, chartInfo, labels, songToLabel,
     sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs,

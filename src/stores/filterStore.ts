@@ -90,8 +90,8 @@ interface FilterState {
   toggleSpHardKey: (key: string) => void
   /** DP難易度表フィルターを設定 */
   setDpDifficultyFilter: (filter: DpDifficultyFilter) => void
-  /** SP難易度表ラベル定義を設定 */
-  setSpDifficultyLabels: (labels: SpDifficultyTableLabelsResponse) => void
+  /** SP難易度表ラベル定義を設定（☆12/☆11をマージ） */
+  setSpDifficultyLabels: (sp12: SpDifficultyTableLabelsResponse, sp11: SpDifficultyTableLabelsResponse) => void
   /** 難易度表フィルタ展開を切り替え */
   toggleDifficultyTableFilterExpanded: () => void
   /** フィルタをリセット */
@@ -237,7 +237,13 @@ export const useFilterStore = create<FilterState>()(
 
       setDpDifficultyFilter: (dpDifficultyFilter) => set({ dpDifficultyFilter }),
 
-      setSpDifficultyLabels: (spDifficultyLabels) => set({ spDifficultyLabels }),
+      setSpDifficultyLabels: (sp12, sp11) => set({
+        // ☆12と☆11のラベルをマージ（同一キーは☆12を優先）
+        spDifficultyLabels: {
+          normal: { ...sp11.normal, ...sp12.normal },
+          hard: { ...sp11.hard, ...sp12.hard },
+        },
+      }),
 
       toggleDifficultyTableFilterExpanded: () =>
         set((state) => ({ difficultyTableFilterExpanded: !state.difficultyTableFilterExpanded })),

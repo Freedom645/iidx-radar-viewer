@@ -67,16 +67,18 @@ export const RADAR_TYPES: RadarType[] = [
 /** AC/INFINITAS収録状況フィルター */
 export type VersionFilter = "all" | "ac" | "inf";
 
-/** 難易度表キーと譜面Difficultyの対応 */
-const DIFFICULTY_TABLE_KEY_MAP: Record<string, Difficulty> = {
-  A: "ANOTHER",
-  H: "HYPER",
-  L: "LEGGENDARIA",
+/** Difficultyから難易度表キー(A/H/L)への変換マップ */
+const DIFFICULTY_TO_TABLE_KEY: Partial<Record<Difficulty, string>> = {
+  ANOTHER: "A",
+  HYPER: "H",
+  LEGGENDARIA: "L",
 };
 
-/** 難易度表キーからDifficultyへ変換 */
-export function difficultyFromTableKey(key: string): Difficulty | undefined {
-  return DIFFICULTY_TABLE_KEY_MAP[key];
+/** Difficultyを難易度表キー(A/H/L)に変換。対象外の場合はundefined */
+export function tableKeyFromDifficulty(
+  difficulty: Difficulty,
+): string | undefined {
+  return DIFFICULTY_TO_TABLE_KEY[difficulty];
 }
 
 /** APIレスポンス: SP難易度表の譜面データ */

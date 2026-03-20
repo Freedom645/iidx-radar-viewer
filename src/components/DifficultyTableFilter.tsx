@@ -20,7 +20,8 @@ interface DifficultyTableFilterProps {
   onToggleExpanded: () => void
 }
 
-/** ラベル定義からソートされたオプション一覧を生成（負の値は除外） */
+/** ラベル定義からソートされたオプション一覧を生成
+ * 負値(-1=未定, -2=不明)を除外。有効な最小値は0.5のため key > 0 で正しい */
 function getLabelOptions(labels: Record<string, string>): LabelOption[] {
   return Object.entries(labels)
     .filter(([key]) => Number(key) > 0)
