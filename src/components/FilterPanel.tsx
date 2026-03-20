@@ -11,8 +11,11 @@ import { VersionFilter } from './VersionFilter'
 import { DifficultyTableFilter } from './DifficultyTableFilter'
 import { CpiFilter } from './CpiFilter'
 
+/** フィルタセクションのキー */
+type FilterSectionKey = 'difficulty' | 'level' | 'bpm' | 'noteCount' | 'radar' | 'difficultyTable' | 'cpi'
+
 /** フィルタセクションと対応カラムのマッピング */
-const FILTER_COLUMN_MAP: Record<string, ColumnId[]> = {
+const FILTER_COLUMN_MAP: Record<FilterSectionKey, ColumnId[]> = {
   difficulty: ['difficulty'],
   level: ['level'],
   bpm: ['bpm'],
@@ -70,11 +73,9 @@ export function FilterPanel() {
   const { visibleColumns } = useColumnStore()
 
   const isFilterVisible = useMemo(() => {
-    const check = (key: string): boolean => {
+    const check = (key: FilterSectionKey): boolean => {
       if (showHiddenFilters) return true
-      const columns = FILTER_COLUMN_MAP[key]
-      if (!columns) return true
-      return columns.some((col) => visibleColumns.has(col))
+      return FILTER_COLUMN_MAP[key].some((col) => visibleColumns.has(col))
     }
     return {
       difficulty: check('difficulty'),

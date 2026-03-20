@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useChartStore, useColumnStore, COLUMN_CONFIGS, COLUMN_GROUPS } from '@/stores'
-import type { ColumnId } from '@/stores'
+import type { ColumnConfig } from '@/stores'
 
 function GroupCheckbox({
   checked,
@@ -51,7 +51,7 @@ export function ColumnSettings() {
       COLUMN_GROUPS.map((group) => {
         const columns = group.columnIds
           .map((id) => configMap.get(id))
-          .filter((c) => c && (!c.playMode || c.playMode === playMode))
+          .filter((c): c is ColumnConfig => c != null && (!c.playMode || c.playMode === playMode))
         return { ...group, columns }
       }).filter((g) => g.columns.length > 0),
     [playMode, configMap]
@@ -108,7 +108,7 @@ export function ColumnSettings() {
               表示するカラム
             </div>
             {filteredGroups.map((group) => {
-              const groupColumnIds = group.columns.map((c) => c!.id)
+              const groupColumnIds = group.columns.map((c) => c.id)
               const checkedCount = groupColumnIds.filter((id) =>
                 visibleColumns.has(id)
               ).length
@@ -122,27 +122,24 @@ export function ColumnSettings() {
                     checked={allChecked}
                     indeterminate={indeterminate}
                     onChange={() =>
-                      setColumnsVisible(
-                        groupColumnIds as ColumnId[],
-                        !allChecked
-                      )
+                      setColumnsVisible(groupColumnIds, !allChecked)
                     }
                     label={group.label}
                   />
                   <div className="ml-4">
                     {group.columns.map((config) => (
                       <label
-                        key={config!.id}
+                        key={config.id}
                         className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"
                       >
                         <input
                           type="checkbox"
-                          checked={visibleColumns.has(config!.id)}
-                          onChange={() => toggleColumn(config!.id)}
+                          checked={visibleColumns.has(config.id)}
+                          onChange={() => toggleColumn(config.id)}
                           className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700">
-                          {config!.label}
+                          {config.label}
                         </span>
                       </label>
                     ))}

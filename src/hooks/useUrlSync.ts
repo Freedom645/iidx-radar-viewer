@@ -241,18 +241,11 @@ function restoreFromUrl(params: URLSearchParams): boolean {
   // SP difficulty table
   const spn = params.get('spn')
   if (spn !== null) {
-    // Reset then set each key
-    const keys = spn.split(',')
-    for (const key of keys) {
-      filter.toggleSpNormalKey(key)
-    }
+    filter.setSelectedSpNormalKeys(new Set(spn.split(',')))
   }
   const sph = params.get('sph')
   if (sph !== null) {
-    const keys = sph.split(',')
-    for (const key of keys) {
-      filter.toggleSpHardKey(key)
-    }
+    filter.setSelectedSpHardKeys(new Set(sph.split(',')))
   }
 
   // DP difficulty
@@ -283,11 +276,12 @@ function restoreFromUrl(params: URLSearchParams): boolean {
   // visible columns
   const cols = params.get('cols')
   if (cols !== null) {
-    const colIds = new Set(cols.split(',').filter(Boolean)) as Set<ColumnId>
-    // Set all columns: first hide all, then show specified ones
-    const allIds = COLUMN_CONFIGS.map((c) => c.id)
-    for (const id of allIds) {
-      column.setColumnVisible(id, colIds.has(id as ColumnId))
+    const validColumnIds = new Set<ColumnId>(COLUMN_CONFIGS.map((c) => c.id))
+    const colIds = new Set(
+      cols.split(',').filter((id): id is ColumnId => validColumnIds.has(id as ColumnId))
+    )
+    for (const id of validColumnIds) {
+      column.setColumnVisible(id, colIds.has(id))
     }
   }
 
@@ -328,8 +322,9 @@ export function useUrlSync() {
         rafIdRef.current = null
         const params = buildSearchParams()
         const search = params.toString()
-        const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
-        if (window.location.search !== `?${search}` && window.location.search !== (search ? `?${search}` : '')) {
+        const currentSearch = window.location.search.slice(1)
+        if (currentSearch !== search) {
+          const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
           window.history.replaceState(null, '', newUrl)
         }
       })

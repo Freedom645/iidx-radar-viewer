@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings, StatsPanel } from '@/components'
 import { CPI_CLEAR_TYPES } from '@/types'
@@ -19,6 +19,21 @@ function App() {
   const { charts, loading, error, playMode, fetchCharts, setPlayMode } =
     useChartStore()
   useUrlSync()
+
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerHeight, setHeaderHeight] = useState(0)
+
+  const updateHeaderHeight = useCallback(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight)
+    }
+  }, [])
+
+  useEffect(() => {
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [updateHeaderHeight])
 
   const {
     searchText,
@@ -194,7 +209,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm">
+      <header ref={headerRef} className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">
             IIDX Radar Viewer
@@ -204,7 +219,7 @@ function App() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col" style={{ height: 'calc(100vh - 73px)' }}>
+      <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col" style={{ height: headerHeight ? `calc(100vh - ${headerHeight}px)` : '100vh' }}>
         {/* フィルタパネル */}
         <div>
           <FilterPanel />

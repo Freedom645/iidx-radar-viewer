@@ -100,8 +100,12 @@ interface FilterState {
   setLabels: (labels: LabelResponse) => void
   /** SPノーマル難易度キーを切り替え */
   toggleSpNormalKey: (key: string) => void
+  /** SPノーマル難易度キーを設定 */
+  setSelectedSpNormalKeys: (keys: Set<string>) => void
   /** SPハード難易度キーを切り替え */
   toggleSpHardKey: (key: string) => void
+  /** SPハード難易度キーを設定 */
+  setSelectedSpHardKeys: (keys: Set<string>) => void
   /** DP難易度表フィルターを設定 */
   setDpDifficultyFilter: (filter: DpDifficultyFilter) => void
   /** SP難易度表ラベル定義を設定（☆12/☆11をマージ） */
@@ -199,7 +203,6 @@ interface PersistedFilterState {
   cpiFilters: Record<CpiClearType, CpiRangeFilter>
   cpiFilterExpanded: boolean
   showHiddenFilters: boolean
-  filterPanelExpanded: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -268,6 +271,8 @@ export const useFilterStore = create<FilterState>()(
           return { selectedSpNormalKeys: newKeys }
         }),
 
+      setSelectedSpNormalKeys: (selectedSpNormalKeys) => set({ selectedSpNormalKeys }),
+
       toggleSpHardKey: (key) =>
         set((state) => {
           const newKeys = new Set(state.selectedSpHardKeys)
@@ -278,6 +283,8 @@ export const useFilterStore = create<FilterState>()(
           }
           return { selectedSpHardKeys: newKeys }
         }),
+
+      setSelectedSpHardKeys: (selectedSpHardKeys) => set({ selectedSpHardKeys }),
 
       setDpDifficultyFilter: (dpDifficultyFilter) => set({ dpDifficultyFilter }),
 
@@ -339,7 +346,6 @@ export const useFilterStore = create<FilterState>()(
               cpiFilters: parsed.state.cpiFilters ?? getInitialCpiFilters(),
               cpiFilterExpanded: parsed.state.cpiFilterExpanded ?? false,
               showHiddenFilters: parsed.state.showHiddenFilters ?? false,
-              filterPanelExpanded: parsed.state.filterPanelExpanded ?? true,
             },
           }
         },
@@ -365,7 +371,6 @@ export const useFilterStore = create<FilterState>()(
             cpiFilters: state.cpiFilters,
             cpiFilterExpanded: state.cpiFilterExpanded,
             showHiddenFilters: state.showHiddenFilters,
-            filterPanelExpanded: state.filterPanelExpanded,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -391,7 +396,6 @@ export const useFilterStore = create<FilterState>()(
         cpiFilters: state.cpiFilters,
         cpiFilterExpanded: state.cpiFilterExpanded,
         showHiddenFilters: state.showHiddenFilters,
-        filterPanelExpanded: state.filterPanelExpanded,
       }),
     }
   )
