@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
-import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings } from '@/components'
+import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings, StatsPanel } from '@/components'
 import { CPI_CLEAR_TYPES } from '@/types'
 
 /** BPM文字列をパースして[min, max]を返す */
@@ -218,6 +218,9 @@ function App() {
           </div>
           <ColumnSettings />
         </div>
+
+        {/* 統計情報 */}
+        <StatsPanel data={filteredCharts} />
 
         {/* テーブル */}
         <div className="mt-4 bg-white rounded-lg shadow-sm overflow-hidden">
