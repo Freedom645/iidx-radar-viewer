@@ -1,11 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { ChartData, PlayMode } from '@/types'
+import type { ChartData, LabelResponse, PlayMode } from '@/types'
 import { fetchAllData, transformToChartData } from '@/api'
 
 interface ChartState {
   /** 全譜面データ */
   charts: ChartData[]
+  /** パック名一覧 */
+  labels: LabelResponse
   /** 読み込み中フラグ */
   loading: boolean
   /** エラーメッセージ */
@@ -22,6 +24,7 @@ export const useChartStore = create<ChartState>()(
   persist(
     (set) => ({
       charts: [],
+      labels: [],
       loading: false,
       error: null,
       playMode: 'SP',
@@ -31,7 +34,7 @@ export const useChartStore = create<ChartState>()(
         try {
           const rawData = await fetchAllData()
           const charts = transformToChartData(rawData)
-          set({ charts, loading: false })
+          set({ charts, labels: rawData.labels, loading: false })
         } catch (error) {
           const message = error instanceof Error ? error.message : 'データの取得に失敗しました'
           set({ error: message, loading: false })

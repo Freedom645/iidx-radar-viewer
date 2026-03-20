@@ -26,6 +26,7 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    selectedPackId,
   } = useFilterStore()
 
   useEffect(() => {
@@ -43,6 +44,11 @@ function App() {
         !chart.title.toLowerCase().includes(searchText.toLowerCase())
       ) {
         return false
+      }
+
+      // 楽曲パックフィルタ
+      if (selectedPackId !== null) {
+        if (chart.labelId !== selectedPackId) return false
       }
 
       // 難易度フィルタ
@@ -115,6 +121,7 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
+    selectedPackId,
   ])
 
   if (error) {

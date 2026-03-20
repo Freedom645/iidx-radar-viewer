@@ -1,9 +1,10 @@
-import { useFilterStore } from '@/stores'
+import { useFilterStore, useChartStore } from '@/stores'
 import { SearchInput } from './SearchInput'
 import { DifficultyFilter } from './DifficultyFilter'
 import { LevelFilter } from './LevelFilter'
 import { NumberRangeFilter } from './NumberRangeFilter'
 import { RadarFilter } from './RadarFilter'
+import { PackFilter } from './PackFilter'
 
 export function FilterPanel() {
   const {
@@ -24,8 +25,11 @@ export function FilterPanel() {
     setRadarFilter,
     radarFilterExpanded,
     toggleRadarFilterExpanded,
+    selectedPackId,
+    setSelectedPackId,
     resetFilters,
   } = useFilterStore()
+  const { labels } = useChartStore()
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
@@ -74,6 +78,16 @@ export function FilterPanel() {
             onChange={setNoteCountRange}
             inputMin={1}
             inputMax={9999}
+          />
+        </div>
+
+        {/* 楽曲パックフィルタ */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">楽曲パック</label>
+          <PackFilter
+            labels={labels}
+            selectedPackId={selectedPackId}
+            onChange={setSelectedPackId}
           />
         </div>
       </div>

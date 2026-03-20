@@ -35,6 +35,8 @@ interface FilterState {
   }
   /** レーダフィルタ展開状態 */
   radarFilterExpanded: boolean
+  /** 選択中の楽曲パックID（nullは「すべて」） */
+  selectedPackId: number | null
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -54,6 +56,8 @@ interface FilterState {
   ) => void
   /** レーダフィルタ展開を切り替え */
   toggleRadarFilterExpanded: () => void
+  /** 楽曲パックを設定 */
+  setSelectedPackId: (packId: number | null) => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -88,6 +92,7 @@ const getInitialState = () => ({
   noteCountMax: '',
   radarFilters: getInitialRadarFilters(),
   radarFilterExpanded: false,
+  selectedPackId: null,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -102,6 +107,7 @@ interface PersistedFilterState {
   noteCountMax: string
   radarFilters: FilterState['radarFilters']
   radarFilterExpanded: boolean
+  selectedPackId: number | null
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -142,6 +148,8 @@ export const useFilterStore = create<FilterState>()(
       toggleRadarFilterExpanded: () =>
         set((state) => ({ radarFilterExpanded: !state.radarFilterExpanded })),
 
+      setSelectedPackId: (selectedPackId) => set({ selectedPackId }),
+
       resetFilters: () => set(getInitialState()),
     }),
     {
@@ -172,6 +180,7 @@ export const useFilterStore = create<FilterState>()(
             noteCountMax: state.noteCountMax,
             radarFilters: state.radarFilters,
             radarFilterExpanded: state.radarFilterExpanded,
+            selectedPackId: state.selectedPackId,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -188,6 +197,7 @@ export const useFilterStore = create<FilterState>()(
         noteCountMax: state.noteCountMax,
         radarFilters: state.radarFilters,
         radarFilterExpanded: state.radarFilterExpanded,
+        selectedPackId: state.selectedPackId,
       }),
     }
   )

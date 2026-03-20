@@ -64,6 +64,18 @@ export const RADAR_TYPES: RadarType[] = [
   "CHORD",
 ];
 
+/** APIレスポンス: パック名一覧（インデックスがlabel ID） */
+export type LabelResponse = string[];
+
+/** APIレスポンス: 楽曲とパックの紐づけ */
+export type SongToLabelResponse = Record<
+  string,
+  {
+    in_leggendaria: boolean;
+    label: number;
+  }
+>;
+
 /** APIレスポンス: 楽曲名 */
 export type TitleResponse = Record<string, string>;
 
@@ -140,6 +152,10 @@ export interface ChartData {
   bpm: string;
   /** レーダ値 */
   radar: RadarData;
+  /** パックID（INFINITAS未収録の場合はnull） */
+  labelId: number | null;
+  /** パック名（INFINITAS未収録の場合はnull） */
+  labelName: string | null;
 }
 
 /** BPM値の型 */
