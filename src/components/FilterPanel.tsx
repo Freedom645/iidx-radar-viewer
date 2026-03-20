@@ -25,8 +25,8 @@ export function FilterPanel() {
     setRadarFilter,
     radarFilterExpanded,
     toggleRadarFilterExpanded,
-    selectedPackId,
-    setSelectedPackId,
+    selectedPackIds,
+    togglePackId,
     resetFilters,
   } = useFilterStore()
   const { labels } = useChartStore()
@@ -81,13 +81,13 @@ export function FilterPanel() {
           />
         </div>
 
-        {/* 楽曲パックフィルタ */}
+        {/* INFINITAS楽曲パックフィルタ */}
         <div>
-          <label className="block text-xs text-gray-600 mb-1">楽曲パック</label>
+          <label className="block text-xs text-gray-600 mb-1">INFINITAS楽曲パック</label>
           <PackFilter
             labels={labels}
-            selectedPackId={selectedPackId}
-            onChange={setSelectedPackId}
+            selectedPackIds={selectedPackIds}
+            onToggle={togglePackId}
           />
         </div>
       </div>

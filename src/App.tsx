@@ -26,7 +26,7 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
-    selectedPackId,
+    selectedPackIds,
   } = useFilterStore()
 
   useEffect(() => {
@@ -47,8 +47,8 @@ function App() {
       }
 
       // 楽曲パックフィルタ
-      if (selectedPackId !== null) {
-        if (chart.labelId !== selectedPackId) return false
+      if (selectedPackIds.size > 0) {
+        if (chart.labelId === null || !selectedPackIds.has(chart.labelId)) return false
       }
 
       // 難易度フィルタ
@@ -121,7 +121,7 @@ function App() {
     noteCountMin,
     noteCountMax,
     radarFilters,
-    selectedPackId,
+    selectedPackIds,
   ])
 
   if (error) {
