@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings, StatsPanel } from '@/components'
 import { CPI_CLEAR_TYPES } from '@/types'
+import { useUrlSync } from '@/hooks'
 
 /** BPM文字列をパースして[min, max]を返す */
 function parseBpm(bpmStr: string): [number, number] {
@@ -17,6 +18,8 @@ function parseBpm(bpmStr: string): [number, number] {
 function App() {
   const { charts, loading, error, playMode, fetchCharts, setPlayMode } =
     useChartStore()
+  useUrlSync()
+
   const {
     searchText,
     difficulties,

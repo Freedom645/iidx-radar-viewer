@@ -31,6 +31,20 @@ export interface ColumnConfig {
   playMode?: 'SP' | 'DP'
 }
 
+export type ColumnGroupId = 'basic' | 'radar' | 'difficultyTable'
+
+export interface ColumnGroup {
+  id: ColumnGroupId
+  label: string
+  columnIds: ColumnId[]
+}
+
+export const COLUMN_GROUPS: ColumnGroup[] = [
+  { id: 'basic', label: '基本', columnIds: ['title', 'difficulty', 'level', 'bpm', 'noteCount'] },
+  { id: 'radar', label: 'レーダー', columnIds: ['notes', 'peak', 'scratch', 'soflan', 'charge', 'chord'] },
+  { id: 'difficultyTable', label: '難易度表', columnIds: ['spNormal', 'spHard', 'dpDifficulty', 'cpiEasy', 'cpiNormal', 'cpiHard', 'cpiExh', 'cpiFc'] },
+]
+
 export const COLUMN_CONFIGS: ColumnConfig[] = [
   { id: 'title', label: '楽曲名', defaultVisible: true, defaultVisibleMobile: true },
   { id: 'difficulty', label: '難易度', defaultVisible: true, defaultVisibleMobile: true },
@@ -60,6 +74,8 @@ interface ColumnState {
   toggleColumn: (id: ColumnId) => void
   /** カラムの表示状態を設定 */
   setColumnVisible: (id: ColumnId, visible: boolean) => void
+  /** 複数カラムの表示状態を一括設定 */
+  setColumnsVisible: (ids: ColumnId[], visible: boolean) => void
   /** デフォルトにリセット */
   resetColumns: (isMobile: boolean) => void
 }
@@ -95,6 +111,19 @@ export const useColumnStore = create<ColumnState>()(
             newColumns.add(id)
           } else {
             newColumns.delete(id)
+          }
+          return { visibleColumns: newColumns }
+        }),
+
+      setColumnsVisible: (ids, visible) =>
+        set((state) => {
+          const newColumns = new Set(state.visibleColumns)
+          for (const id of ids) {
+            if (visible) {
+              newColumns.add(id)
+            } else {
+              newColumns.delete(id)
+            }
           }
           return { visibleColumns: newColumns }
         }),

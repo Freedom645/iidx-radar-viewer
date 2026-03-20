@@ -67,6 +67,8 @@ interface FilterState {
   cpiFilters: Record<CpiClearType, CpiRangeFilter>
   /** CPIフィルタ展開状態 */
   cpiFilterExpanded: boolean
+  /** 非表示カラムのフィルタも表示するか */
+  showHiddenFilters: boolean
   /** 検索テキストを設定 */
   setSearchText: (text: string) => void
   /** 難易度を切り替え */
@@ -108,6 +110,10 @@ interface FilterState {
   setCpiFilter: (clearType: CpiClearType, filter: CpiRangeFilter) => void
   /** CPIフィルタ展開を切り替え */
   toggleCpiFilterExpanded: () => void
+  /** 非表示フィルタ表示を切り替え */
+  toggleShowHiddenFilters: () => void
+  /** 非表示フィルタ表示を設定 */
+  setShowHiddenFilters: (show: boolean) => void
   /** フィルタをリセット */
   resetFilters: () => void
 }
@@ -162,6 +168,7 @@ const getInitialState = () => ({
   difficultyTableFilterExpanded: false,
   cpiFilters: getInitialCpiFilters(),
   cpiFilterExpanded: false,
+  showHiddenFilters: false,
 })
 
 /** 永続化用の型（SetをArrayに変換） */
@@ -184,6 +191,7 @@ interface PersistedFilterState {
   difficultyTableFilterExpanded: boolean
   cpiFilters: Record<CpiClearType, CpiRangeFilter>
   cpiFilterExpanded: boolean
+  showHiddenFilters: boolean
 }
 
 export const useFilterStore = create<FilterState>()(
@@ -287,6 +295,11 @@ export const useFilterStore = create<FilterState>()(
       toggleCpiFilterExpanded: () =>
         set((state) => ({ cpiFilterExpanded: !state.cpiFilterExpanded })),
 
+      toggleShowHiddenFilters: () =>
+        set((state) => ({ showHiddenFilters: !state.showHiddenFilters })),
+
+      setShowHiddenFilters: (showHiddenFilters) => set({ showHiddenFilters }),
+
       resetFilters: () => set((state) => ({
         ...getInitialState(),
         labels: state.labels,
@@ -312,6 +325,7 @@ export const useFilterStore = create<FilterState>()(
               difficultyTableFilterExpanded: parsed.state.difficultyTableFilterExpanded ?? false,
               cpiFilters: parsed.state.cpiFilters ?? getInitialCpiFilters(),
               cpiFilterExpanded: parsed.state.cpiFilterExpanded ?? false,
+              showHiddenFilters: parsed.state.showHiddenFilters ?? false,
             },
           }
         },
@@ -336,6 +350,7 @@ export const useFilterStore = create<FilterState>()(
             difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
             cpiFilters: state.cpiFilters,
             cpiFilterExpanded: state.cpiFilterExpanded,
+            showHiddenFilters: state.showHiddenFilters,
           }
           localStorage.setItem(name, JSON.stringify({ ...value, state: persistedState }))
         },
@@ -360,6 +375,7 @@ export const useFilterStore = create<FilterState>()(
         difficultyTableFilterExpanded: state.difficultyTableFilterExpanded,
         cpiFilters: state.cpiFilters,
         cpiFilterExpanded: state.cpiFilterExpanded,
+        showHiddenFilters: state.showHiddenFilters,
       }),
     }
   )
