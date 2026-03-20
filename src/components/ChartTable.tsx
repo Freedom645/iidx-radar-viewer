@@ -136,6 +136,81 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
         minSize: 70,
         maxSize: 70,
       }),
+      ...(playMode === 'SP'
+        ? [
+            columnHelper.display({
+              id: 'spNormal',
+              header: 'ノーマル難易度',
+              cell: (info) => {
+                const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
+                return rating?.normalLabel ?? ''
+              },
+              sortingFn: (rowA, rowB) => {
+                const ratingA = rowA.original.sp12Rating ?? rowA.original.sp11Rating
+                const ratingB = rowB.original.sp12Rating ?? rowB.original.sp11Rating
+                const a = ratingA?.normalValue ?? null
+                const b = ratingB?.normalValue ?? null
+                if (a === null && b === null) return 0
+                if (a === null) return 1
+                if (b === null) return -1
+                if (a < 0 && b < 0) return 0
+                if (a < 0) return 1
+                if (b < 0) return -1
+                return a - b
+              },
+              size: 100,
+              minSize: 100,
+              maxSize: 100,
+              enableSorting: true,
+            }),
+            columnHelper.display({
+              id: 'spHard',
+              header: 'ハード難易度',
+              cell: (info) => {
+                const rating = info.row.original.sp12Rating ?? info.row.original.sp11Rating
+                return rating?.hardLabel ?? ''
+              },
+              sortingFn: (rowA, rowB) => {
+                const ratingA = rowA.original.sp12Rating ?? rowA.original.sp11Rating
+                const ratingB = rowB.original.sp12Rating ?? rowB.original.sp11Rating
+                const a = ratingA?.hardValue ?? null
+                const b = ratingB?.hardValue ?? null
+                if (a === null && b === null) return 0
+                if (a === null) return 1
+                if (b === null) return -1
+                if (a < 0 && b < 0) return 0
+                if (a < 0) return 1
+                if (b < 0) return -1
+                return a - b
+              },
+              size: 100,
+              minSize: 100,
+              maxSize: 100,
+              enableSorting: true,
+            }),
+          ]
+        : [
+            columnHelper.display({
+              id: 'dpDifficulty',
+              header: 'DP難易度',
+              cell: (info) => {
+                const rating = info.row.original.dpRating
+                return rating ? rating.value.toFixed(1) : ''
+              },
+              sortingFn: (rowA, rowB) => {
+                const a = rowA.original.dpRating?.value ?? null
+                const b = rowB.original.dpRating?.value ?? null
+                if (a === null && b === null) return 0
+                if (a === null) return 1
+                if (b === null) return -1
+                return a - b
+              },
+              size: 80,
+              minSize: 80,
+              maxSize: 80,
+              enableSorting: true,
+            }),
+          ]),
     ],
     [playMode]
   )

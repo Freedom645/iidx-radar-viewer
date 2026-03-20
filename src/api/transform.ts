@@ -1,11 +1,17 @@
 import type {
   ChartData,
   ChartInfoResponse,
+  Difficulty,
+  DpDifficultyRating,
+  DpDifficultyTableSongsResponse,
   LabelResponse,
   PlayMode,
   RadarData,
   RadarResponse,
   SongToLabelResponse,
+  SpDifficultyRating,
+  SpDifficultyTableLabelsResponse,
+  SpDifficultyTableSongsResponse,
   TitleResponse,
 } from "@/types";
 import {
@@ -22,6 +28,11 @@ interface RawData {
   chartInfo: ChartInfoResponse;
   labels: LabelResponse;
   songToLabel: SongToLabelResponse;
+  sp12Songs: SpDifficultyTableSongsResponse;
+  sp12Labels: SpDifficultyTableLabelsResponse;
+  sp11Songs: SpDifficultyTableSongsResponse;
+  sp11Labels: SpDifficultyTableLabelsResponse;
+  dpDifficultySongs: DpDifficultyTableSongsResponse;
 }
 
 /** パック情報を解決 */
@@ -67,9 +78,68 @@ function extractRadar(
   return { notes, peak, scratch, soflan, charge, chord };
 }
 
+/** SP難易度表の情報を解決 */
+function resolveSpRating(
+  songId: string,
+  difficulty: Difficulty,
+  songs: SpDifficultyTableSongsResponse,
+  labels: SpDifficultyTableLabelsResponse,
+): SpDifficultyRating | null {
+  const songEntry = songs[songId];
+  if (!songEntry) return null;
+
+  // Difficultyから難易度表キーを逆引き
+  const tableKey = Object.entries(
+    { A: "ANOTHER", H: "HYPER", L: "LEGGENDARIA" } as Record<string, string>,
+  ).find(([, d]) => d === difficulty)?.[0];
+  if (!tableKey) return null;
+
+  const rating = songEntry[tableKey];
+  if (!rating) return null;
+
+  // -1（未定）、-2（不明）は未設定扱い
+  if (rating.n_value < 0 && rating.h_value < 0) return null;
+
+  const normalValue = rating.n_value;
+  const hardValue = rating.h_value;
+  const normalLabel =
+    normalValue < 0
+      ? ""
+      : (labels.normal[String(normalValue)] ?? String(normalValue));
+  const hardLabel =
+    hardValue < 0
+      ? ""
+      : (labels.hard[String(hardValue)] ?? String(hardValue));
+
+  return { normalValue, normalLabel, hardValue, hardLabel };
+}
+
+/** DP難易度表の情報を解決 */
+function resolveDpRating(
+  songId: string,
+  difficulty: Difficulty,
+  songs: DpDifficultyTableSongsResponse,
+): DpDifficultyRating | null {
+  const songEntry = songs[songId];
+  if (!songEntry) return null;
+
+  const tableKey = Object.entries(
+    { A: "ANOTHER", H: "HYPER", L: "LEGGENDARIA" } as Record<string, string>,
+  ).find(([, d]) => d === difficulty)?.[0];
+  if (!tableKey) return null;
+
+  const rating = songEntry[tableKey];
+  if (!rating) return null;
+
+  return { value: rating.value };
+}
+
 /** 生データを譜面データに変換 */
 export function transformToChartData(rawData: RawData): ChartData[] {
-  const { titles, spRadar, dpRadar, chartInfo, labels, songToLabel } = rawData;
+  const {
+    titles, spRadar, dpRadar, chartInfo, labels, songToLabel,
+    sp12Songs, sp12Labels, sp11Songs, sp11Labels, dpDifficultySongs,
+  } = rawData;
   const charts: ChartData[] = [];
 
   // すべての楽曲IDを収集
@@ -115,6 +185,16 @@ export function transformToChartData(rawData: RawData): ChartData[] {
 
         const { labelId, labelName } = resolveLabel(songLabel, difficulty, labels);
 
+        // SP難易度表の紐づけ（対象レベルのみ）
+        const sp12Rating =
+          level === 12
+            ? resolveSpRating(songId, difficulty, sp12Songs, sp12Labels)
+            : null;
+        const sp11Rating =
+          level === 11
+            ? resolveSpRating(songId, difficulty, sp11Songs, sp11Labels)
+            : null;
+
         charts.push({
           songId,
           title,
@@ -128,6 +208,9 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           inInf: info?.in_inf ?? false,
           labelId,
           labelName,
+          sp12Rating,
+          sp11Rating,
+          dpRating: null,
         });
       }
     }
@@ -146,6 +229,9 @@ export function transformToChartData(rawData: RawData): ChartData[] {
 
         const { labelId, labelName } = resolveLabel(songLabel, difficulty, labels);
 
+        // DP難易度表の紐づけ（全レベル）
+        const dpRating = resolveDpRating(songId, difficulty, dpDifficultySongs);
+
         charts.push({
           songId,
           title,
@@ -159,6 +245,9 @@ export function transformToChartData(rawData: RawData): ChartData[] {
           inInf: info?.in_inf ?? false,
           labelId,
           labelName,
+          sp12Rating: null,
+          sp11Rating: null,
+          dpRating,
         });
       }
     }
