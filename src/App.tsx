@@ -138,7 +138,7 @@ function App() {
         if (dpDifficultyFilter.max && chart.dpRating.value > Number(dpDifficultyFilter.max)) return false
       }
 
-      // CPIフィルタ
+      // CPIフィルタ（min/maxはstring型。"0"はtruthyでフィルタ発動、""はスキップ）
       for (const clearType of CPI_CLEAR_TYPES) {
         const filter = cpiFilters[clearType]
         if (filter.min || filter.max) {

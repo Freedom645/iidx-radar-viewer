@@ -1,9 +1,5 @@
 import { CPI_CLEAR_TYPES, CPI_CLEAR_TYPE_LABELS, type CpiClearType } from '@/types'
-
-interface CpiRangeFilter {
-  min: string
-  max: string
-}
+import type { CpiRangeFilter } from '@/stores/filterStore'
 
 interface CpiFilterProps {
   filters: Record<CpiClearType, CpiRangeFilter>

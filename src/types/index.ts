@@ -137,8 +137,11 @@ export type CpiResponse = Record<
 /** AC/INFINITAS収録状況フィルター */
 export type VersionFilter = "all" | "ac" | "inf";
 
+/** 難易度表キー */
+export type DifficultyTableKey = "A" | "H" | "L";
+
 /** Difficultyから難易度表キー(A/H/L)への変換マップ */
-const DIFFICULTY_TO_TABLE_KEY: Partial<Record<Difficulty, string>> = {
+const DIFFICULTY_TO_TABLE_KEY: Partial<Record<Difficulty, DifficultyTableKey>> = {
   ANOTHER: "A",
   HYPER: "H",
   LEGGENDARIA: "L",
@@ -147,7 +150,7 @@ const DIFFICULTY_TO_TABLE_KEY: Partial<Record<Difficulty, string>> = {
 /** Difficultyを難易度表キー(A/H/L)に変換。対象外の場合はundefined */
 export function tableKeyFromDifficulty(
   difficulty: Difficulty,
-): string | undefined {
+): DifficultyTableKey | undefined {
   return DIFFICULTY_TO_TABLE_KEY[difficulty];
 }
 

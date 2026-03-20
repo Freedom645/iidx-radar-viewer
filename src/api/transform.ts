@@ -151,7 +151,7 @@ function resolveCpi(
   const tableKey = tableKeyFromDifficulty(difficulty);
   if (!tableKey) return null;
 
-  const diffEntry = songEntry[tableKey as "A" | "H" | "L"];
+  const diffEntry = songEntry[tableKey];
   if (!diffEntry) return null;
 
   const result: CpiData = { easy: null, normal: null, hard: null, exh: null, fc: null };
