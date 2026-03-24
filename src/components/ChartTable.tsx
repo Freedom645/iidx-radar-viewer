@@ -42,10 +42,10 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
 
-  // データやソートが変わったら表示件数をリセット
+  // データが変わったら表示件数をリセット
   useEffect(() => {
     setDisplayCount(PAGE_SIZE)
-  }, [data, sorting])
+  }, [data])
 
   const columns = useMemo(
     () => [
@@ -253,8 +253,8 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
 
   // IntersectionObserverで末尾センチネルを監視し、追加読み込み
   const loadMore = useCallback(() => {
-    setDisplayCount((prev) => Math.min(prev + PAGE_SIZE, rows.length))
-  }, [rows.length])
+    setDisplayCount((prev) => prev + PAGE_SIZE)
+  }, [])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
@@ -288,7 +288,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
             <col key={column.id} style={{ width: column.getSize() }} />
           ))}
         </colgroup>
-        <thead className="bg-gray-50">
+        <thead className="bg-gray-50 sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
