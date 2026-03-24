@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -6,7 +6,6 @@ import {
   flexRender,
   createColumnHelper,
 } from '@tanstack/react-table'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import type { ChartData, Difficulty, PlayMode } from '@/types'
 import { CPI_CLEAR_TYPES, CPI_CLEAR_TYPE_LABELS, DIFFICULTY_SHORT } from '@/types'
 import { useColumnStore, useSortStore, type ColumnId } from '@/stores'
@@ -24,7 +23,8 @@ const DIFFICULTY_BG_COLORS: Record<Difficulty, string> = {
   LEGGENDARIA: 'bg-purple-200',
 }
 
-const ROW_HEIGHT = 41
+/** 1回あたりの表示追加件数 */
+const PAGE_SIZE = 50
 
 const columnHelper = createColumnHelper<ChartData>()
 
@@ -39,7 +39,13 @@ const numericWithTitleFallback: typeof import('@tanstack/react-table').sortingFn
 export function ChartTable({ data, playMode }: ChartTableProps) {
   const { sorting, setSorting } = useSortStore()
   const { visibleColumns } = useColumnStore()
-  const tableContainerRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
+
+  // データが変わったら表示件数をリセット
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE)
+  }, [data])
 
   const columns = useMemo(
     () => [
@@ -242,22 +248,29 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
   })
 
   const { rows } = table.getRowModel()
+  const displayedRows = rows.slice(0, displayCount)
+  const hasMore = displayCount < rows.length
 
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 10,
-  })
+  // IntersectionObserverで末尾センチネルを監視し、追加読み込み
+  const loadMore = useCallback(() => {
+    setDisplayCount((prev) => prev + PAGE_SIZE)
+  }, [])
 
-  const virtualRows = virtualizer.getVirtualItems()
-  const totalSize = virtualizer.getTotalSize()
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || !hasMore) return
 
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start ?? 0 : 0
-  const paddingBottom =
-    virtualRows.length > 0
-      ? totalSize - (virtualRows[virtualRows.length - 1]?.end ?? 0)
-      : 0
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore()
+        }
+      },
+      { rootMargin: '200px' },
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, loadMore])
 
   if (rows.length === 0) {
     return (
@@ -268,10 +281,7 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
   }
 
   return (
-    <div
-      ref={tableContainerRef}
-      className="overflow-auto h-full"
-    >
+    <div className="overflow-x-auto">
       <table className="w-full divide-y divide-gray-200 table-fixed">
         <colgroup>
           {table.getAllLeafColumns().map((column) => (
@@ -303,34 +313,22 @@ export function ChartTable({ data, playMode }: ChartTableProps) {
           ))}
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {paddingTop > 0 && (
-            <tr>
-              <td style={{ height: `${paddingTop}px` }} />
+          {displayedRows.map((row) => (
+            <tr key={row.id} className="hover:bg-gray-50">
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="px-3 py-2 text-sm text-gray-900">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
             </tr>
-          )}
-          {virtualRows.map((virtualRow) => {
-            const row = rows[virtualRow.index]
-            return (
-              <tr
-                key={row.id}
-                className="hover:bg-gray-50"
-                style={{ height: `${ROW_HEIGHT}px` }}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-3 py-2 text-sm text-gray-900">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            )
-          })}
-          {paddingBottom > 0 && (
-            <tr>
-              <td style={{ height: `${paddingBottom}px` }} />
-            </tr>
-          )}
+          ))}
         </tbody>
       </table>
+      {hasMore && (
+        <div ref={sentinelRef} className="py-4 text-center text-sm text-gray-400">
+          読み込み中...
+        </div>
+      )}
     </div>
   )
 }
