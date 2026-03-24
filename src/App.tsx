@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useChartStore, useFilterStore } from '@/stores'
 import { PlayModeTabs, FilterPanel, ChartTable, ColumnSettings, StatsPanel } from '@/components'
 import { CPI_CLEAR_TYPES } from '@/types'
@@ -21,19 +21,6 @@ function App() {
   useUrlSync()
 
   const headerRef = useRef<HTMLElement>(null)
-  const [headerHeight, setHeaderHeight] = useState(0)
-
-  const updateHeaderHeight = useCallback(() => {
-    if (headerRef.current) {
-      setHeaderHeight(headerRef.current.offsetHeight)
-    }
-  }, [])
-
-  useEffect(() => {
-    updateHeaderHeight()
-    window.addEventListener('resize', updateHeaderHeight)
-    return () => window.removeEventListener('resize', updateHeaderHeight)
-  }, [updateHeaderHeight])
 
   const {
     searchText,
@@ -219,7 +206,7 @@ function App() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col" style={{ height: headerHeight ? `calc(100vh - ${headerHeight}px)` : '100vh' }}>
+      <main className="max-w-7xl mx-auto px-4 py-6">
         {/* フィルタパネル */}
         <div>
           <FilterPanel />
@@ -239,7 +226,7 @@ function App() {
         </div>
 
         {/* テーブル */}
-        <div className="mt-3 bg-white rounded-lg shadow-sm overflow-hidden flex-1 min-h-0">
+        <div className="mt-3 bg-white rounded-lg shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-3 text-gray-500">
